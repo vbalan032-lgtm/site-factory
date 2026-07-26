@@ -1,7 +1,7 @@
 import unittest
 from pathlib import Path
 
-from workspace_tempdir import workspace_tempdir
+from .workspace_tempdir import workspace_tempdir
 
 
 class SnapshotTests(unittest.TestCase):

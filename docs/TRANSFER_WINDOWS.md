@@ -49,6 +49,21 @@ Bootstrap уже синхронизирует `project_id` в project config, gr
 
 После Attach сопоставьте существующие source-of-truth и lifecycle paths в `.site-factory/project.json`. Затем выполните Doctor. Если target уже содержит файл с тем же путём, что factory skill, Attach остановится и ничего не перезапишет.
 
+### 3C. Подключить legacy-проект со старым снимком skills
+
+Если проект уже использует предшественника Site Factory и `Attach` сообщает коллизию, используйте `Adopt`. Он записывает текущий snapshot в lock, но не заменяет ни skills, ни application/business-файлы. До первого Update проверьте `.site-factory/project.json`: укажите реальные source-of-truth, sitemap, lifecycle и knowledge-graph paths проекта.
+
+```powershell
+.\bootstrap.ps1 -Mode Adopt -Target C:\Work\legacy-site -ProjectId legacy-site -ProjectName "Название проекта"
+.\bootstrap.ps1 -Mode Adopt -Target C:\Work\legacy-site -ProjectId legacy-site -ProjectName "Название проекта" -Apply
+# Проверить и при необходимости исправить .site-factory\project.json
+.\bootstrap.ps1 -Mode Doctor -Target C:\Work\legacy-site
+.\bootstrap.ps1 -Mode Update -Target C:\Work\legacy-site -Apply
+.\bootstrap.ps1 -Mode Doctor -Target C:\Work\legacy-site
+```
+
+Первый Update создаёт ZIP-backup в `.site-factory\backups\` и затем заменяет только factory-owned skills. Если Doctor сообщает drift, остановитесь и разберите различия; не удаляйте lock и не используйте force.
+
 ## 4. Подготовить Codex
 
 ```powershell

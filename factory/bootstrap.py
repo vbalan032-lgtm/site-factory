@@ -150,6 +150,8 @@ def _write_lock(
     target: Path,
     profiles: tuple[str, ...],
     owned_paths: tuple[str, ...],
+    *,
+    source: str = "site-factory release snapshot",
 ) -> None:
     manifest = build_manifest(target, owned_paths)
     _write_json_atomic(
@@ -157,7 +159,7 @@ def _write_lock(
         {
             "schema_version": "1.0",
             "factory_version": _version(source_root),
-            "source": "site-factory release snapshot",
+            "source": source,
             "profiles": list(profiles),
             "owned_roots": list(owned_paths),
             "installed_files": manifest,
@@ -330,6 +332,48 @@ def attach_project(
     _customize_config(target, project_id, project_name)
     _copy_owned_snapshot(source_root, target, owned_paths, allow_replace=False)
     _write_lock(source_root, target, selected_profiles, owned_paths)
+    return OperationResult(actions, changed=True)
+
+
+def adopt_project(
+    source_root: Path,
+    target: Path,
+    project_id: str,
+    project_name: str,
+    *,
+    profiles: tuple[str, ...] | list[str] | None = None,
+    apply: bool,
+) -> OperationResult:
+    source_root = source_root.resolve()
+    target = target.resolve()
+    actions = (
+        "adopt legacy factory snapshot",
+        "create project config",
+        "write factory lock",
+    )
+    _validate_identity(project_id, project_name)
+    selected_profiles, owned_paths = _profile_paths(source_root, profiles)
+    if not target.is_dir():
+        raise BootstrapError("Adopt target must be an existing directory")
+    if (target / CONFIG_PATH).exists() or (target / LOCK_PATH).exists():
+        raise BootstrapError("target is already attached; use Update")
+    legacy_manifest = build_manifest(target, owned_paths)
+    if not legacy_manifest:
+        raise BootstrapError("Adopt target has no factory-owned files for selected profiles")
+    if not apply:
+        return OperationResult(actions)
+    config_source = source_root / "templates/nextjs" / CONFIG_PATH
+    config_target = target / CONFIG_PATH
+    config_target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(config_source, config_target)
+    _customize_config(target, project_id, project_name)
+    _write_lock(
+        source_root,
+        target,
+        selected_profiles,
+        owned_paths,
+        source="legacy project snapshot",
+    )
     return OperationResult(actions, changed=True)
 
 
@@ -662,7 +706,7 @@ def verify_package(archive: Path, checksum: Path, manifest_path: Path) -> Doctor
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Site Factory Windows bootstrap")
-    parser.add_argument("mode", choices=("new", "attach", "doctor", "update", "configure-codex", "pack", "verify"))
+    parser.add_argument("mode", choices=("new", "attach", "adopt", "doctor", "update", "configure-codex", "pack", "verify"))
     parser.add_argument("--source", type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument("--target", type=Path)
     parser.add_argument("--project-id")
@@ -679,10 +723,15 @@ def _parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
-        if args.mode in {"new", "attach"}:
+        if args.mode in {"new", "attach", "adopt"}:
             if not args.target or not args.project_id or not args.project_name:
                 raise BootstrapError("target, project-id and project-name are required")
-            operation = new_project if args.mode == "new" else attach_project
+            operations = {
+                "new": new_project,
+                "attach": attach_project,
+                "adopt": adopt_project,
+            }
+            operation = operations[args.mode]
             profiles = tuple(item.strip() for item in args.profiles.split(",")) if args.profiles else None
             result = operation(
                 args.source,

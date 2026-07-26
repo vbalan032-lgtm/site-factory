@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "factory_version": "1.0.0",
+  "factory_version": "1.0.1",
   "runtime": {
     "python": ">=3.12",
     "powershell": ">=5.1",

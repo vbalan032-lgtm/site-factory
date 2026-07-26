@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet("New", "Attach", "Doctor", "Update", "ConfigureCodex", "Pack", "Verify")]
+    [ValidateSet("New", "Attach", "Adopt", "Doctor", "Update", "ConfigureCodex", "Pack", "Verify")]
     [string]$Mode,
     [string]$Target,
     [string]$ProjectId,

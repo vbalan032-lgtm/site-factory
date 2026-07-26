@@ -7,7 +7,7 @@
 ## Что входит
 
 - 56 локальных Codex skills в двух профилях: `core` и `nextjs-ui`;
-- безопасные режимы `New`, `Attach`, `Doctor`, `Update`, `ConfigureCodex`, `Pack`, `Verify`;
+- безопасные режимы `New`, `Attach`, `Adopt`, `Doctor`, `Update`, `ConfigureCodex`, `Pack`, `Verify`;
 - хешированный `.site-factory/lock.json` и блокировка обновления при локальном drift;
 - нейтральный starter: Next.js 16.2.12, React 19.2.4, TypeScript, Tailwind CSS 4, npm lockfile и Dockerfile;
 - 164 regression-теста фабрики и clean-room тесты переноса;
@@ -42,6 +42,15 @@ npm run build
 .\bootstrap.ps1 -Mode Doctor -Target C:\Work\existing-site
 ```
 
+Если существующий проект уже содержит предыдущий, project-bound снимок skills, используйте `Adopt`: он не заменяет skills, а записывает их текущие хеши в lock. После проверки путей в `.site-factory/project.json` первый `Update -Apply` создаст ZIP-backup legacy-снимка и только затем заменит factory-owned skills на версию релиза.
+
+```powershell
+.\bootstrap.ps1 -Mode Adopt -Target C:\Work\legacy-site -ProjectId legacy-site -ProjectName "Существующий сайт"
+.\bootstrap.ps1 -Mode Adopt -Target C:\Work\legacy-site -ProjectId legacy-site -ProjectName "Существующий сайт" -Apply
+.\bootstrap.ps1 -Mode Update -Target C:\Work\legacy-site -Apply
+.\bootstrap.ps1 -Mode Doctor -Target C:\Work\legacy-site
+```
+
 Полная инструкция по переносу: [docs/TRANSFER_WINDOWS.md](docs/TRANSFER_WINDOWS.md). Архитектура и правила развития: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Профили
@@ -57,4 +66,4 @@ npm run build
 
 ## Безопасность
 
-Dry-run является поведением по умолчанию. `Attach` останавливается при коллизии factory-owned файлов. `Update` останавливается при drift и не меняет project-owned файлы. `ConfigureCodex` создаёт только пример внутри проекта и не редактирует пользовательский профиль Codex. Commit, push, release, staging и production не выполняются bootstrap-скриптом.
+Dry-run является поведением по умолчанию. `Attach` останавливается при коллизии factory-owned файлов. `Adopt` фиксирует существующий legacy-снимок без замены файлов. `Update` останавливается при drift и не меняет project-owned файлы. `ConfigureCodex` создаёт только пример внутри проекта и не редактирует пользовательский профиль Codex. Commit, push, release, staging и production не выполняются bootstrap-скриптом.

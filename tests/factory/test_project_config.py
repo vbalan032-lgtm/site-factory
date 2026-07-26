@@ -2,7 +2,7 @@ import json
 import unittest
 from pathlib import Path
 
-from workspace_tempdir import workspace_tempdir
+from .workspace_tempdir import workspace_tempdir
 
 
 class ProjectConfigTests(unittest.TestCase):

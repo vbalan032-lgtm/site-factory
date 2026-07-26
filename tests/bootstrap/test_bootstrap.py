@@ -48,7 +48,7 @@ class BootstrapTests(unittest.TestCase):
         )
         self.assertEqual(graph_profile["project_id"], "new-site")
         self.assertEqual(project_knowledge["project_id"], "new-site")
-        self.assertEqual(lock["factory_version"], "1.0.0")
+        self.assertEqual(lock["factory_version"], "1.0.1")
         self.assertIn(".agents/skills/loop-engine/loop-daily-runner/SKILL.md", lock["installed_files"])
 
     def test_new_and_attach_validate_identity_before_writing(self):
@@ -101,6 +101,54 @@ class BootstrapTests(unittest.TestCase):
 
         with self.assertRaisesRegex(BootstrapError, "collision"):
             attach_project(ROOT, target, "collision", "Коллизия", apply=True)
+
+    def test_adopt_records_legacy_factory_snapshot_without_replacing_skills(self):
+        from factory.bootstrap import adopt_project, update_project
+
+        target = self.sandbox / "legacy-project"
+        legacy_skill = target / ".agents/skills/loop-engine/loop-daily-runner/SKILL.md"
+        legacy_skill.parent.mkdir(parents=True)
+        legacy_skill.write_text("legacy project skill", encoding="utf-8")
+
+        preview = adopt_project(
+            ROOT,
+            target,
+            "legacy-project",
+            "Legacy project",
+            profiles=("core",),
+            apply=False,
+        )
+        self.assertFalse((target / ".site-factory/project.json").exists())
+        self.assertIn("adopt legacy factory snapshot", preview.actions)
+
+        adopt_project(
+            ROOT,
+            target,
+            "legacy-project",
+            "Legacy project",
+            profiles=("core",),
+            apply=True,
+        )
+
+        self.assertEqual(legacy_skill.read_text(encoding="utf-8"), "legacy project skill")
+        lock = json.loads((target / ".site-factory/lock.json").read_text(encoding="utf-8"))
+        self.assertEqual(lock["source"], "legacy project snapshot")
+        self.assertIn(
+            ".agents/skills/loop-engine/loop-daily-runner/SKILL.md",
+            lock["installed_files"],
+        )
+
+        update_project(ROOT, target, apply=True)
+
+        self.assertNotEqual(legacy_skill.read_text(encoding="utf-8"), "legacy project skill")
+        backup = target / ".site-factory/backups/pre-update-1.0.0.zip"
+        with zipfile.ZipFile(backup) as archive:
+            self.assertEqual(
+                archive.read(
+                    ".agents/skills/loop-engine/loop-daily-runner/SKILL.md"
+                ).decode("utf-8"),
+                "legacy project skill",
+            )
 
     def test_core_profile_skips_optional_ui_skills(self):
         from factory.bootstrap import new_project
