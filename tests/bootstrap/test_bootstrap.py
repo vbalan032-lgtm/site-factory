@@ -48,7 +48,7 @@ class BootstrapTests(unittest.TestCase):
         )
         self.assertEqual(graph_profile["project_id"], "new-site")
         self.assertEqual(project_knowledge["project_id"], "new-site")
-        self.assertEqual(lock["factory_version"], "1.0.1")
+        self.assertEqual(lock["factory_version"], "1.0.2")
         self.assertIn(".agents/skills/loop-engine/loop-daily-runner/SKILL.md", lock["installed_files"])
 
     def test_new_and_attach_validate_identity_before_writing(self):
@@ -141,7 +141,7 @@ class BootstrapTests(unittest.TestCase):
         update_project(ROOT, target, apply=True)
 
         self.assertNotEqual(legacy_skill.read_text(encoding="utf-8"), "legacy project skill")
-        backup = target / ".site-factory/backups/pre-update-1.0.0.zip"
+        backup = target / ".site-factory/backups/pre-update-1.0.2.zip"
         with zipfile.ZipFile(backup) as archive:
             self.assertEqual(
                 archive.read(
@@ -187,7 +187,7 @@ class BootstrapTests(unittest.TestCase):
         update_project(source_copy, target, apply=True)
         installed = target / ".agents/skills/loop-engine/loop-daily-runner/SKILL.md"
         self.assertIn("release update", installed.read_text(encoding="utf-8"))
-        backup = target / ".site-factory/backups/pre-update-1.0.0.zip"
+        backup = target / ".site-factory/backups/pre-update-1.0.2.zip"
         self.assertTrue(backup.is_file())
         with zipfile.ZipFile(backup) as archive:
             previous = archive.read(

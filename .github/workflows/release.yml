@@ -44,7 +44,7 @@ jobs:
           cache-dependency-path: templates/nextjs/package-lock.json
       - name: Verify factory
         run: |
-          python -m unittest discover -s tests/factory -p "test_*.py" -v
+          python -m unittest discover -s tests/factory -t . -p "test_*.py" -v
           python -m unittest discover -s tests/bootstrap -p "test_*.py" -v
       - name: Verify starter
         working-directory: templates/nextjs

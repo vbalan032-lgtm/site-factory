@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Factory regression tests
-        run: python -m unittest discover -s tests/factory -p "test_*.py" -v
+        run: python -m unittest discover -s tests/factory -t . -p "test_*.py" -v
       - name: Bootstrap clean-room tests
         run: python -m unittest discover -s tests/bootstrap -p "test_*.py" -v
       - name: Validate skills
