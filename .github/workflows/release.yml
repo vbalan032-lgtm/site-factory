@@ -34,7 +34,7 @@ jobs:
           if ($env:APPROVED_TAG -ne $ExpectedTag) {
             throw "Approved tag '$env:APPROVED_TAG' must equal $ExpectedTag"
           }
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - uses: actions/setup-node@v4
