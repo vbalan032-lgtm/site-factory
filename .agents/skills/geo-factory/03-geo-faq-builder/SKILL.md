@@ -3,6 +3,10 @@ name: 03-geo-faq-builder
 description: "Create project GEO FAQ blocks for AI search and answer engines where each question is phrased like a user asks an AI system, the first sentence gives a direct answer, the explanation is proof-aware, and each item links to a relevant project page without advertising noise. Use for answer-ready pages, GEO briefs, articles, FAQ blocks, and AI-answer visibility improvements."
 ---
 
+## Context entry
+
+Use `shared/context-pack-loader` stdout JSON first. Read sources only via `exact_source_triggers`, changed fingerprints/conflicts, or an explicit cross-cutting audit. Never create tracked `CONTEXT_PACK.md`.
+
 ## Project configuration
 
 Before using any project identity, accepted Latin term, or canonical path, read `.site-factory/project.json`. Resolve source-of-truth, lifecycle, and graph paths from its `paths` mapping. Project-owned sources define the brand, audience, offers, claims, and domain; never infer them from this factory skill. If the config is missing or invalid, stop and ask the owner to run Site Factory `Doctor`.
@@ -18,11 +22,11 @@ The FAQ must keep project framed as the positioning defined in configured busine
 ## Inputs
 - Target page, route, topic, or content draft
 - User questions, search queries, or AI-answer queries
-- `PROJECT_MASTER_CONTEXT.md`
-- `docs/BRAND_STYLE.md`
-- `docs/PRODUCT_MAP.md`
-- `docs/CLAIMS_AND_PROOFS.md`
-- `docs/PERSONAS.md`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
 - `docs/SITEMAP_V1.md`
 - `docs/geo/GEO_QUERY_MAP.md`, when present
 - `docs/geo/ENTITY_PROOF_MAP.md`, when present

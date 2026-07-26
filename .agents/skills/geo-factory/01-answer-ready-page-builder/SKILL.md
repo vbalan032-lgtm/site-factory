@@ -3,6 +3,10 @@ name: 01-answer-ready-page-builder
 description: "Create answer-ready project pages for AI search and answer engines with short direct answers, definitions, structured lists, comparison tables, expert blocks, FAQ, and links to commercial pages. Use when Codex needs to make a page easy for AI systems to understand, cite, summarize, and connect to project commercial paths."
 ---
 
+## Context entry
+
+Use `shared/context-pack-loader` stdout JSON first. Read sources only via `exact_source_triggers`, changed fingerprints/conflicts, or an explicit cross-cutting audit. Never create tracked `CONTEXT_PACK.md`.
+
 ## Project configuration
 
 Before using any project identity, accepted Latin term, or canonical path, read `.site-factory/project.json`. Resolve source-of-truth, lifecycle, and graph paths from its `paths` mapping. Project-owned sources define the brand, audience, offers, claims, and domain; never infer them from this factory skill. If the config is missing or invalid, stop and ask the owner to run Site Factory `Doctor`.
@@ -16,11 +20,11 @@ Create answer-ready project page structures and copy so AI search systems can ac
 The page must keep project framed as the positioning defined in configured business sources, with configured primary offer as the entry offer and the broader configured offer portfolio of configured secondary offers and integrations as the scale path.
 
 ## Inputs
-- `PROJECT_MASTER_CONTEXT.md`
-- `docs/BRAND_STYLE.md`
-- `docs/PRODUCT_MAP.md`
-- `docs/CLAIMS_AND_PROOFS.md`
-- `docs/PERSONAS.md`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
 - `docs/SITEMAP_V1.md`
 - `docs/geo/GEO_QUERY_MAP.md`, when present
 - `docs/geo/ENTITY_PROOF_MAP.md`, when present

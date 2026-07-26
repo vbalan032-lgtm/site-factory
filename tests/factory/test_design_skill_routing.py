@@ -191,15 +191,15 @@ class DesignSkillRoutingTests(unittest.TestCase):
         loader = read(ROOT / ".agents/skills/shared/context-pack-loader/SKILL.md")
         policy = read(TEMPLATE / "docs/system/SKILL_CONTEXT_POLICY.md")
         graph_position = loader.find("Use `knowledge-graph-router` first")
-        exact_position = loader.find("Graph summaries never replace those exact files")
+        exact_position = loader.find("returned exact evidence slices")
         fallback_position = loader.find("fall back only to existing files in `context_allowlist`")
         self.assertGreaterEqual(graph_position, 0)
         self.assertGreater(exact_position, graph_position)
         self.assertGreater(fallback_position, exact_position)
         self.assertRegex(
             policy,
-            r"(?is)Query the graph.{0,500}exact files.{0,500}"
-            r"(?:only the stage `context_allowlist`|stage `context_allowlist` fallback)",
+            r"(?is)context-pack-loader.{0,800}exact_source_triggers.{0,800}"
+            r"stage `context_allowlist`",
         )
 
     def test_agents_routes_v3_context_through_project_graph_first_entry(self):

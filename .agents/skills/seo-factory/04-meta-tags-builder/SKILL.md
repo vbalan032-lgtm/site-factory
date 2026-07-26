@@ -3,6 +3,10 @@ name: 04-meta-tags-builder
 description: "Write, review, and implement project page meta tags and social metadata: title, description, OpenGraph, Twitter/X cards when used, canonical URL, robots meta, and alt text for key images. Use after a page SEO brief exists or when Codex needs to add, fix, or audit metadata in route files without changing schema JSON-LD or page body copy beyond image alt text."
 ---
 
+## Context entry
+
+Use `shared/context-pack-loader` stdout JSON first. Read sources only via `exact_source_triggers`, changed fingerprints/conflicts, or an explicit cross-cutting audit. Never create tracked `CONTEXT_PACK.md`.
+
 ## Project configuration
 
 Before using any project identity, accepted Latin term, or canonical path, read `.site-factory/project.json`. Resolve source-of-truth, lifecycle, and graph paths from its `paths` mapping. Project-owned sources define the brand, audience, offers, claims, and domain; never infer them from this factory skill. If the config is missing or invalid, stop and ask the owner to run Site Factory `Doctor`.
@@ -19,10 +23,10 @@ This skill handles meta tags and image alt text. Use `seo-factory/06-schema-buil
 - `docs/pages/<slug>/SEO_BRIEF.md` or `docs/seo/briefs/<slug>.md`
 - `docs/seo/KEYWORD_MAP.md`
 - `docs/SITEMAP_V1.md`
-- `docs/PRODUCT_MAP.md`
-- `docs/PERSONAS.md`
-- `docs/CLAIMS_AND_PROOFS.md`
-- `docs/BRAND_STYLE.md`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
 - Target route/page files and existing metadata implementation
 - Key image files, image components, alt attributes, and OpenGraph image assets
 - Local Next.js docs in `node_modules/next/dist/docs/` before changing Next metadata APIs

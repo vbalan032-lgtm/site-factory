@@ -16,11 +16,11 @@ Use canonical files as truth and Graphify only as a derived context index.
 
 1. Load and validate the project `GRAPH_PROFILE.json` with `scripts/graph_profile.py`.
 2. Build exact artifact/lifecycle records with `scripts/factory_catalog.py`; semantic extraction cannot override them. Update materializes only profile-allowed files into generated staging and merges these records into the published graph.
-3. Query through `scripts/query_context.py`, always scoped by `project_id`, stage and token budget.
-4. Enforce the profile stage budget even when a caller requests more. Accept current `EXTRACTED` evidence before `INFERRED`; exclude `AMBIGUOUS` unless an explicit diagnostic asks for it.
-5. Read exact allowlisted canonical files for Claim, Approval, Conflict, changed fingerprints and ReleaseEvidence. Reject a sensitive summary whose source is outside the allowlist.
-6. On absent, stale, corrupt, cross-project or unavailable graph results, use the stage filesystem allowlist. Preserve page state.
+3. Query through `scripts/query_context.py`, always scoped by `project_id`, route, stage, source role, provenance, lifecycle, relevance, dependency expansion, deduplication, and token budget in that order.
+4. Enforce split summary, exact, total, and `top_k` limits even when a caller requests more. Accept current `EXTRACTED` evidence before `INFERRED`; exclude `AMBIGUOUS` unless an explicit diagnostic asks for it.
+5. Return Claim, Approval, Conflict, changed fingerprints, and ReleaseEvidence as verified exact slices with locator, span, file hash, and slice hash. Return `exact_source_triggers` only for unresolved locators, conflicts, or an explicit cross-cutting audit.
+6. Treat timestamp age with unchanged fingerprints as a warning. On changed fingerprints, exclude only affected nodes and use targeted exact evidence. Use the stage filesystem allowlist only when the graph is corrupt, unsafe, cross-project, or unavailable. Preserve page state.
 
 Read `references/base-ontology.md` when adding node or edge types. Read `references/graph-profile-schema.md` when creating or migrating a project profile.
 
-Queries and filesystem fallback are read-only and never trigger an update. Run an update only for an explicit owner request or a configured event trigger, and only through `scripts/update_graph.py`. Do not start watch, MCP, remote databases, hooks or visualization as part of normal stage work. Never treat graph evidence as authority for claims, approvals, Git, staging or production.
+Migration archives are excluded by default; `--migration-evidence` is a diagnostic-only opt-in. Queries and filesystem fallback are read-only and never trigger an update. Run an update only for an explicit owner request or a configured event trigger, and only through `scripts/update_graph.py`. Do not start watch, MCP, remote databases, hooks or visualization as part of normal stage work. Never treat graph evidence as authority for claims, approvals, Git, staging or production.

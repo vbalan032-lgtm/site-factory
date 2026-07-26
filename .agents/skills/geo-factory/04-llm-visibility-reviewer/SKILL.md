@@ -3,6 +3,10 @@ name: 04-llm-visibility-reviewer
 description: Review project pages and content for AI answer-engine visibility, entity clarity, citation usefulness, and hallucination risk.
 ---
 
+## Context entry
+
+Use `shared/context-pack-loader` stdout JSON first. Read sources only via `exact_source_triggers`, changed fingerprints/conflicts, or an explicit cross-cutting audit. Never create tracked `CONTEXT_PACK.md`.
+
 ## Project configuration
 
 Before using any project identity, accepted Latin term, or canonical path, read `.site-factory/project.json`. Resolve source-of-truth, lifecycle, and graph paths from its `paths` mapping. Project-owned sources define the brand, audience, offers, claims, and domain; never infer them from this factory skill. If the config is missing or invalid, stop and ask the owner to run Site Factory `Doctor`.
@@ -17,7 +21,7 @@ Check whether a page gives answer engines enough accurate visible context to cit
 - Target page content or route
 - `docs/geo/GEO_QUERY_MAP.md`, when present
 - `docs/geo/ENTITY_PROOF_MAP.md`, when present
-- `docs/CLAIMS_AND_PROOFS.md`
+- ``exact_source_triggers` source`
 - `docs/SITEMAP_V1.md`
 
 ## Workflow

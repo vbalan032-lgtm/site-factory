@@ -59,6 +59,19 @@ class GraphProfileTests(unittest.TestCase):
         self.assertEqual(profile.extraction_mode, "code-only")
         self.assertEqual(profile.knowledge_seed_paths, ("docs/knowledge.json",))
 
+    def test_starter_profile_uses_v11_roles_and_all_seven_split_budgets(self):
+        starter = ROOT / "templates/nextjs"
+        path = starter / "docs/system/knowledge-graph/GRAPH_PROFILE.json"
+        profile = self.module.load_graph_profile(path, starter)
+
+        self.assertEqual(profile.schema_version, "1.1")
+        self.assertEqual(set(profile.stage_limits), set(self.module.FACTORY_STAGES))
+        self.assertEqual(
+            {rule.source_role for rule in profile.corpus_rules},
+            {"canonical", "design", "page_artifact", "lifecycle", "implementation"},
+        )
+        self.assertTrue(all(limit.total_tokens > 0 for limit in profile.stage_limits.values()))
+
     def test_rejects_missing_project_id_and_unknown_provider(self):
         runtime = ROOT / "tests/factory/.runtime"
         with workspace_tempdir(runtime) as tmp:

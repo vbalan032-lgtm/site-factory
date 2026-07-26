@@ -22,6 +22,7 @@ from artifact_contracts import (  # noqa: E402
     source_fingerprint,
 )
 from graph_profile import GraphProfile  # noqa: E402
+from fingerprints import current_source_fingerprints  # noqa: E402
 from provider import FactoryCatalog, GraphRecord, GraphRelationship  # noqa: E402
 from project_knowledge import load_project_knowledge  # noqa: E402
 from state_engine import parse_next_task, parse_page_queue  # noqa: E402
@@ -67,8 +68,6 @@ def _excluded(relative_path: str, profile: GraphProfile) -> bool:
         or Path(relative_path).match(pattern)
         for pattern in profile.exclude_globs
     )
-
-
 def _is_migration_evidence(relative_path: str) -> bool:
     return "/migration-archive/" in f"/{relative_path.replace('\\', '/')}"
 
@@ -150,6 +149,32 @@ def build_factory_catalog(
             continue
         schema_version = str(metadata["schema_version"])
         fingerprint = source_fingerprint(path, repo_root, schema_version)
+        dependency_state = "current"
+        declared_dependencies = metadata.get("source_fingerprints", {})
+        if isinstance(declared_dependencies, dict):
+            for dependency_path, dependency_fingerprint in declared_dependencies.items():
+                safe_dependency = (
+                    _safe_source_path(dependency_path, repo_root)
+                    if isinstance(dependency_path, str)
+                    else None
+                )
+                if (
+                    safe_dependency is None
+                    or not isinstance(dependency_fingerprint, str)
+                    or not (repo_root / safe_dependency).is_file()
+                ):
+                    dependency_state = "changed_dependency"
+                    break
+                try:
+                    current = current_source_fingerprints(
+                        repo_root / safe_dependency, repo_root
+                    )
+                except OSError:
+                    dependency_state = "changed_dependency"
+                    break
+                if dependency_fingerprint not in current:
+                    dependency_state = "changed_dependency"
+                    break
         artifact_id = _node_id(profile, "Artifact", relative)
         artifact = GraphRecord(
             node_id=artifact_id,
@@ -165,6 +190,10 @@ def build_factory_catalog(
                 "stage": metadata["stage"],
                 "status": metadata["status"],
                 "source_fingerprints": metadata.get("source_fingerprints", {}),
+                "source_role": "page_artifact",
+                "routes": [str(metadata["route"])],
+                "stages": [str(metadata["stage"])],
+                "lifecycle_state": dependency_state,
             },
         )
         _add_record(records, artifact)

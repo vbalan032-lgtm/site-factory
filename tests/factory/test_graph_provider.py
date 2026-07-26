@@ -396,7 +396,7 @@ class GraphProviderTests(unittest.TestCase):
         self.assertEqual(node["source_file"], "docs/source.md")
         self.assertTrue(published["directed"])
 
-    def test_full_update_preserves_last_healthy_graph_on_unexpected_shrink(self):
+    def test_full_update_accepts_smaller_graph_when_integrity_checks_pass(self):
         runtime = ROOT / "tests/factory/.runtime"
         with workspace_tempdir(runtime) as tmp:
             profile = self.setup_graph(tmp)
@@ -445,11 +445,10 @@ class GraphProviderTests(unittest.TestCase):
             health = self.adapter.GraphifyJsonProvider(
                 profile, tmp, command_runner=runner
             ).update(profile, tmp, incremental=False)
-            preserved = json.loads(graph_path.read_text(encoding="utf-8"))
+            published = json.loads(graph_path.read_text(encoding="utf-8"))
 
-        self.assertFalse(health.available)
-        self.assertTrue(any("refusing to shrink" in warning for warning in health.warnings))
-        self.assertEqual(preserved, original)
+        self.assertTrue(health.available, health.warnings)
+        self.assertEqual([node["id"] for node in published["nodes"]], ["replacement-source"])
 
 
 if __name__ == "__main__":

@@ -3,6 +3,10 @@ name: 05-faq-builder
 description: "Create project page FAQ blocks with 5-8 buyer-relevant questions by default, a short direct answer, expert explanation, funnel-stage alignment, proof-safe wording, and FAQPage schema readiness. Use when Codex needs FAQ content for project pages, SEO briefs, page blocks, answer-engine visibility, or schema handoff without unsupported claims."
 ---
 
+## Context entry
+
+Use `shared/context-pack-loader` stdout JSON first. Read sources only via `exact_source_triggers`, changed fingerprints/conflicts, or an explicit cross-cutting audit. Never create tracked `CONTEXT_PACK.md`.
+
 ## Project configuration
 
 Before using any project identity, accepted Latin term, or canonical path, read `.site-factory/project.json`. Resolve source-of-truth, lifecycle, and graph paths from its `paths` mapping. Project-owned sources define the brand, audience, offers, claims, and domain; never infer them from this factory skill. If the config is missing or invalid, stop and ask the owner to run Site Factory `Doctor`.
@@ -20,11 +24,11 @@ The default page FAQ block contains 5-8 questions. If a user explicitly asks for
 - `docs/seo/KEYWORD_MAP.md`
 - `docs/seo/CONTENT_GAP_REPORT.md`, when the FAQ comes from a gap audit
 - `docs/SITEMAP_V1.md`
-- `docs/PRODUCT_MAP.md`
-- `docs/PERSONAS.md`
-- `docs/CLAIMS_AND_PROOFS.md`
-- `docs/BRAND_STYLE.md`
-- `docs/pages/<slug>/CONTEXT_PACK.md`, when present
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
+- `docs/pages/<slug>/context-pack-loader stdout JSON`, when present
 - Existing page copy or route content when adding FAQ to an implemented page
 
 ## Workflow
