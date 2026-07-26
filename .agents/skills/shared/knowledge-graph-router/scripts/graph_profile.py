@@ -7,8 +7,18 @@ from pathlib import Path, PurePosixPath
 import re
 
 
-SUPPORTED_SCHEMA_VERSIONS = {"1.0"}
+SUPPORTED_SCHEMA_VERSIONS = {"1.0", "1.1"}
 SUPPORTED_PROVIDERS = {"graphify-json"}
+FACTORY_STAGES = (
+    "01-page-contract",
+    "02-creative-blueprint",
+    "03-conversion-copy",
+    "04-page-assets",
+    "05-full-page-build",
+    "06-integrated-qa-refinement",
+    "07-release-growth",
+)
+SUPPORTED_INDEX_MODES = {"full", "sections", "code-symbols", "excluded"}
 SECRET_PATH_PATTERN = re.compile(
     r"(?:^|/)(?:\.env(?:\.|$)|[^/]*(?:secret|password|passwd|private[_-]?key|api[_-]?key)[^/]*)",
     re.IGNORECASE,
@@ -17,6 +27,22 @@ SECRET_PATH_PATTERN = re.compile(
 
 def path_is_secret(value: str) -> bool:
     return bool(SECRET_PATH_PATTERN.search(value.replace("\\", "/")))
+
+
+@dataclass(frozen=True)
+class CorpusRule:
+    root: str
+    source_role: str
+    stages: tuple[str, ...]
+    index_mode: str
+
+
+@dataclass(frozen=True)
+class StageLimit:
+    summary_tokens: int
+    exact_tokens: int
+    total_tokens: int
+    top_k: int
 
 
 @dataclass(frozen=True)
@@ -37,6 +63,8 @@ class GraphProfile:
     entity_aliases: dict[str, tuple[str, ...]]
     ontology_extensions: tuple[str, ...]
     stage_budgets: dict[str, int]
+    corpus_rules: tuple[CorpusRule, ...]
+    stage_limits: dict[str, StageLimit]
 
 
 def resolve_repo_path(value: object, field: str, repo_root: Path) -> tuple[str, Path]:
@@ -80,8 +108,6 @@ def path_is_excluded(path: str, patterns: tuple[str, ...]) -> bool:
         or PurePosixPath(path).match(pattern)
         for pattern in patterns
     )
-
-
 def load_graph_profile(path: Path, repo_root: Path) -> GraphProfile:
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
@@ -109,6 +135,39 @@ def load_graph_profile(path: Path, repo_root: Path) -> GraphProfile:
         raise ValueError("corpus_roots must not be empty")
     if any(path_is_secret(value) for value in corpus_roots):
         raise ValueError("secret paths cannot be corpus roots")
+
+    corpus_rules: tuple[CorpusRule, ...]
+    if schema_version == "1.1":
+        raw_rules = data.get("corpus_rules")
+        if not isinstance(raw_rules, list) or not raw_rules:
+            raise ValueError("schema 1.1 corpus_rules must be a non-empty list")
+        parsed_rules: list[CorpusRule] = []
+        for raw_rule in raw_rules:
+            if not isinstance(raw_rule, dict):
+                raise ValueError("corpus rule must be an object")
+            root = _normalized_relative_path(
+                raw_rule.get("root"), "corpus_rules.root", repo_root
+            )
+            role = raw_rule.get("source_role")
+            if not isinstance(role, str) or not role.strip():
+                raise ValueError("corpus rule source_role is required")
+            stages = _string_tuple(raw_rule.get("stages"), "corpus_rules.stages")
+            if not stages or any(stage not in FACTORY_STAGES for stage in stages):
+                raise ValueError("corpus rule stages must use the seven factory stages")
+            index_mode = raw_rule.get("index_mode")
+            if index_mode not in SUPPORTED_INDEX_MODES:
+                raise ValueError("unsupported corpus rule index_mode")
+            if root not in corpus_roots:
+                raise ValueError("corpus rule root must be declared in corpus_roots")
+            parsed_rules.append(
+                CorpusRule(root, role.strip(), stages, str(index_mode))
+            )
+        corpus_rules = tuple(parsed_rules)
+    else:
+        corpus_rules = tuple(
+            CorpusRule(root, "canonical", FACTORY_STAGES, "full")
+            for root in corpus_roots
+        )
 
     exclude_globs = _string_tuple(data.get("exclude_globs"), "exclude_globs")
     if not any(".env" in pattern for pattern in exclude_globs):
@@ -176,12 +235,35 @@ def load_graph_profile(path: Path, repo_root: Path) -> GraphProfile:
     if not isinstance(budgets, dict) or not budgets:
         raise ValueError("stage_budgets must be a non-empty object")
     normalized_budgets: dict[str, int] = {}
+    stage_limits: dict[str, StageLimit] = {}
     for stage, budget in budgets.items():
         if not isinstance(stage, str) or not stage.strip():
             raise ValueError("stage_budgets keys must be non-empty strings")
-        if not isinstance(budget, int) or isinstance(budget, bool) or budget <= 0:
-            raise ValueError(f"stage budget must be positive: {stage}")
-        normalized_budgets[stage] = budget
+        if schema_version == "1.1":
+            if not isinstance(budget, dict):
+                raise ValueError(f"schema 1.1 stage budget must be an object: {stage}")
+            values = {
+                key: budget.get(key)
+                for key in ("summary_tokens", "exact_tokens", "total_tokens", "top_k")
+            }
+            if any(
+                not isinstance(value, int) or isinstance(value, bool) or value <= 0
+                for value in values.values()
+            ):
+                raise ValueError(f"stage budget values must be positive: {stage}")
+            limit = StageLimit(**values)
+            if limit.summary_tokens + limit.exact_tokens > limit.total_tokens:
+                raise ValueError(f"stage split budgets exceed total: {stage}")
+        else:
+            if not isinstance(budget, int) or isinstance(budget, bool) or budget <= 0:
+                raise ValueError(f"stage budget must be positive: {stage}")
+            summary = max(1, budget * 3 // 5)
+            exact = max(1, budget - summary)
+            limit = StageLimit(summary, exact, budget, 12)
+        normalized_budgets[stage] = limit.total_tokens
+        stage_limits[stage] = limit
+    if schema_version == "1.1" and set(stage_limits) != set(FACTORY_STAGES):
+        raise ValueError("schema 1.1 must configure all seven factory stage budgets")
 
     return GraphProfile(
         schema_version=schema_version,
@@ -200,4 +282,6 @@ def load_graph_profile(path: Path, repo_root: Path) -> GraphProfile:
         entity_aliases=normalized_aliases,
         ontology_extensions=ontology_extensions,
         stage_budgets=normalized_budgets,
+        corpus_rules=corpus_rules,
+        stage_limits=stage_limits,
     )

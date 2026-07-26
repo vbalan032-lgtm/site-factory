@@ -3,6 +3,10 @@ name: 02-ai-answer-brief-writer
 description: Write AI-answer briefs for project pages so answer engines can extract accurate definitions, comparisons, proof, and next steps.
 ---
 
+## Context entry
+
+Use `shared/context-pack-loader` stdout JSON first. Read sources only via `exact_source_triggers`, changed fingerprints/conflicts, or an explicit cross-cutting audit. Never create tracked `CONTEXT_PACK.md`.
+
 ## Project configuration
 
 Before using any project identity, accepted Latin term, or canonical path, read `.site-factory/project.json`. Resolve source-of-truth, lifecycle, and graph paths from its `paths` mapping. Project-owned sources define the brand, audience, offers, claims, and domain; never infer them from this factory skill. If the config is missing or invalid, stop and ask the owner to run Site Factory `Doctor`.
@@ -16,8 +20,8 @@ Specify the answer-engine content a page should make clear: what project is, wha
 ## Inputs
 - `docs/geo/GEO_QUERY_MAP.md`
 - Page context files
-- `docs/PRODUCT_MAP.md`
-- `docs/CLAIMS_AND_PROOFS.md`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
 - `docs/SITEMAP_V1.md`
 
 ## Workflow

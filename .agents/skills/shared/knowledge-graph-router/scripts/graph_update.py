@@ -9,6 +9,16 @@ from graph_profile import GraphProfile, path_is_excluded, path_is_secret
 from provider import FactoryCatalog
 
 
+def _corpus_rule(profile: GraphProfile, source_path: str):
+    path_parts = PurePosixPath(source_path).parts
+    matches = []
+    for rule in profile.corpus_rules:
+        root_parts = PurePosixPath(rule.root).parts
+        if path_parts[: len(root_parts)] == root_parts:
+            matches.append((len(root_parts), rule))
+    return max(matches, key=lambda item: item[0])[1] if matches else None
+
+
 def _normalize_graphify_source(value: object, repo_root: Path) -> str:
     if not isinstance(value, str) or not value.strip():
         return ""
@@ -33,6 +43,9 @@ def collect_profile_files(profile: GraphProfile, repo_root: Path) -> tuple[str, 
     root_resolved = repo_root.resolve()
     included: set[str] = set()
     for configured in profile.corpus_roots:
+        configured_rule = _corpus_rule(profile, configured)
+        if configured_rule is not None and configured_rule.index_mode == "excluded":
+            continue
         source = (root_resolved / configured).resolve()
         try:
             source.relative_to(root_resolved)
@@ -67,6 +80,18 @@ def materialize_profile_corpus(
 
 def _raw_fingerprint(path: Path) -> str:
     return "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _record_is_publishable(record, profile: GraphProfile, repo_root: Path, allowed: set[str]) -> bool:
+    if record.project_id != profile.project_id or record.source_path not in allowed:
+        return False
+    if record.node_type != "Source" or not isinstance(record.source_fingerprint, str):
+        return True
+    from fingerprints import current_source_fingerprints
+
+    return record.source_fingerprint in current_source_fingerprints(
+        repo_root / record.source_path, repo_root
+    )
 
 
 def _existing_graph_is_healthy(
@@ -188,6 +213,11 @@ def publish_merged_graph(
         node["project_id"] = profile.project_id
         node["source_file"] = source
         node["source_fingerprint"] = source_fingerprints[source]
+        rule = _corpus_rule(profile, source)
+        if rule is not None:
+            node["source_role"] = rule.source_role
+            node["stages"] = list(rule.stages)
+        node.setdefault("lifecycle_state", "current")
         nodes[str(node["id"])] = node
 
     pending = dict(source_less)
@@ -230,28 +260,19 @@ def publish_merged_graph(
                     },
                 }
             )
+            rule = _corpus_rule(profile, primary_source)
+            if rule is not None:
+                node["source_role"] = rule.source_role
+                node["stages"] = list(rule.stages)
+            node.setdefault("lifecycle_state", "current")
             nodes[node_id] = node
             del pending[node_id]
             progressed = True
         if not progressed:
             break
 
-    from fingerprints import current_source_fingerprints
-
     for record in catalog.records:
-        if record.project_id != profile.project_id or record.source_path not in allowed:
-            continue
-        if (
-            record.node_type == "Source"
-            and isinstance(record.source_fingerprint, str)
-            and record.source_fingerprint
-            not in current_source_fingerprints(
-                repo_root / record.source_path, repo_root
-            )
-        ):
-            # A Source catalog record identifies the exact version consumed by an
-            # artifact. Keep that stale fingerprint in the artifact, but do not
-            # republish the old source version as current graph context.
+        if not _record_is_publishable(record, profile, repo_root, allowed):
             continue
         nodes[record.node_id] = {
             "id": record.node_id,
@@ -272,6 +293,24 @@ def publish_merged_graph(
             "confidence_score": 1.0,
             "properties": record.properties,
         }
+        for field in (
+            "source_locator",
+            "source_span",
+            "file_sha256",
+            "slice_sha256",
+            "source_role",
+            "routes",
+            "stages",
+            "lifecycle_state",
+        ):
+            value = record.properties.get(field)
+            if value is not None:
+                nodes[record.node_id][field] = value
+        rule = _corpus_rule(profile, record.source_path)
+        if rule is not None:
+            nodes[record.node_id].setdefault("source_role", rule.source_role)
+            nodes[record.node_id].setdefault("stages", list(rule.stages))
+        nodes[record.node_id].setdefault("lifecycle_state", "current")
         source_location = record.properties.get("source_location")
         if isinstance(source_location, str) and source_location.strip():
             nodes[record.node_id]["source_location"] = source_location.strip()
@@ -303,11 +342,20 @@ def publish_merged_graph(
 
     if not nodes:
         raise ValueError("merged graph is empty")
-    if target_path.is_file():
-        if _existing_graph_is_healthy(target_path, profile, repo_root):
-            existing = json.loads(target_path.read_text(encoding="utf-8"))
-            if len(existing.get("nodes", [])) > len(nodes):
-                raise ValueError("refusing to shrink the last healthy graph")
+    node_ids = set(nodes)
+    required_catalog_ids = {
+        record.node_id
+        for record in catalog.records
+        if _record_is_publishable(record, profile, repo_root, allowed)
+    }
+    if not required_catalog_ids.issubset(node_ids):
+        raise ValueError("merged graph is missing required catalog coverage")
+    if any(
+        str(edge.get("source", "")) not in node_ids
+        or str(edge.get("target", "")) not in node_ids
+        for edge in links
+    ):
+        raise ValueError("merged graph has dangling relationships")
 
     output = {
         key: value
@@ -333,7 +381,7 @@ def publish_merged_graph(
         ),
     )
     output["factory_metadata"] = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "project_id": profile.project_id,
         "source_fingerprints": source_fingerprints,
     }

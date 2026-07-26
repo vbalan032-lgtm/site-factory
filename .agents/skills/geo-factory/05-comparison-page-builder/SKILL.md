@@ -3,6 +3,10 @@ name: 05-comparison-page-builder
 description: "Create honest project comparison pages for GEO and AI search, including manual workflow vs configured primary offer, Excel vs specialized systems, legacy specialist software vs newer specialist approach, consultants vs internal team, and enterprise platform vs lightweight configured primary offer pilot. Use when Codex needs a balanced comparison page that answer engines can cite without caricaturing competitors or making unsupported claims."
 ---
 
+## Context entry
+
+Use `shared/context-pack-loader` stdout JSON first. Read sources only via `exact_source_triggers`, changed fingerprints/conflicts, or an explicit cross-cutting audit. Never create tracked `CONTEXT_PACK.md`.
+
 ## Project configuration
 
 Before using any project identity, accepted Latin term, or canonical path, read `.site-factory/project.json`. Resolve source-of-truth, lifecycle, and graph paths from its `paths` mapping. Project-owned sources define the brand, audience, offers, claims, and domain; never infer them from this factory skill. If the config is missing or invalid, stop and ask the owner to run Site Factory `Doctor`.
@@ -18,11 +22,11 @@ The page must keep project framed as the positioning defined in configured busin
 ## Inputs
 - Comparison topic and target route
 - Target audience and funnel stage
-- `PROJECT_MASTER_CONTEXT.md`
-- `docs/BRAND_STYLE.md`
-- `docs/PRODUCT_MAP.md`
-- `docs/CLAIMS_AND_PROOFS.md`
-- `docs/PERSONAS.md`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
 - `docs/SITEMAP_V1.md`
 - `docs/seo/KEYWORD_MAP.md`, when present
 - `docs/geo/GEO_QUERY_MAP.md`, when present

@@ -3,6 +3,10 @@ name: brand-compliance-checker
 description: "Use when a project page artifact, SEO/GEO output, or release candidate needs a scoped brand-compliance review."
 ---
 
+## Context entry
+
+Use `shared/context-pack-loader` stdout JSON first. Read sources only via `exact_source_triggers`, changed fingerprints/conflicts, or an explicit cross-cutting audit. Never create tracked `CONTEXT_PACK.md`.
+
 ## Project configuration
 
 Before using any project identity, accepted Latin term, or canonical path, read `.site-factory/project.json`. Resolve source-of-truth, lifecycle, and graph paths from its `paths` mapping. Project-owned sources define the brand, audience, offers, claims, and domain; never infer them from this factory skill. If the config is missing or invalid, stop and ask the owner to run Site Factory `Doctor`.
@@ -15,11 +19,11 @@ Check whether a specific artifact follows project brand positioning and communic
 
 ## Inputs
 - Artifact to check: copy, page, block, visual brief, SEO/GEO page, CTA, FAQ, metadata, or QA artifact.
-- `PROJECT_MASTER_CONTEXT.md`.
-- `docs/BRAND_STYLE.md`.
-- `docs/PRODUCT_MAP.md`, when product or offer portfolio meaning matters.
-- `docs/PERSONAS.md`, when audience or CTA fit matters.
-- `docs/CLAIMS_AND_PROOFS.md`, when claims appear.
+- ``exact_source_triggers` source`.
+- ``exact_source_triggers` source`.
+- ``exact_source_triggers` source`, when product or offer portfolio meaning matters.
+- ``exact_source_triggers` source`, when audience or CTA fit matters.
+- ``exact_source_triggers` source`, when claims appear.
 
 ## Workflow
 1. Identify the artifact type, audience, funnel stage, and public surface.

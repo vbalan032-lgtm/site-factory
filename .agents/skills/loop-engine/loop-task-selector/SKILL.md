@@ -3,6 +3,10 @@ name: loop-task-selector
 description: Select exactly one safe project page stage from the canonical seven-stage lifecycle while preserving repair, approval, and graph-fallback safety.
 ---
 
+## Context entry
+
+Use `shared/context-pack-loader` stdout JSON first. Read sources only via `exact_source_triggers`, changed fingerprints/conflicts, or an explicit cross-cutting audit. Never create tracked `CONTEXT_PACK.md`.
+
 ## Project configuration
 
 Before using any project identity, accepted Latin term, or canonical path, read `.site-factory/project.json`. Resolve source-of-truth, lifecycle, and graph paths from its `paths` mapping. Project-owned sources define the brand, audience, offers, claims, and domain; never infer them from this factory skill. If the config is missing or invalid, stop and ask the owner to run Site Factory `Doctor`.

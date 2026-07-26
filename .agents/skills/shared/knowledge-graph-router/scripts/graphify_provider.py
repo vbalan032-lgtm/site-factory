@@ -17,7 +17,7 @@ CONFIDENCE_SCORES = {"EXTRACTED": 1.0, "INFERRED": 0.7, "AMBIGUOUS": 0.3}
 
 
 def _query_terms(value: str) -> set[str]:
-    return {term for term in re.findall(r"[\w-]+", value.lower()) if len(term) >= 3}
+    return {term for term in re.findall(r"[\w-]+", value.lower()) if len(term) >= 2}
 
 
 def _search_text(node: dict) -> str:
@@ -111,6 +111,7 @@ class GraphifyJsonProvider:
                 confidence = node.get("confidence")
             if confidence is None:
                 confidence = edge_evidence[0][1] if edge_evidence else CONFIDENCE_SCORES.get(str(provenance), 0.0)
+            properties = node.get("properties")
             node.update(
                 {
                     "project_id": node.get("project_id", graph_project),
@@ -128,6 +129,26 @@ class GraphifyJsonProvider:
                             + list(node.get("evidence_sources", []))
                         )
                     ),
+                    "source_locator": node.get(
+                        "source_locator",
+                        properties.get("source_locator") if isinstance(properties, dict) else None,
+                    ),
+                    "source_span": node.get(
+                        "source_span",
+                        properties.get("source_span") if isinstance(properties, dict) else None,
+                    ),
+                    "source_role": node.get(
+                        "source_role",
+                        properties.get("source_role", "canonical")
+                        if isinstance(properties, dict)
+                        else "canonical",
+                    ),
+                    "lifecycle_state": node.get(
+                        "lifecycle_state",
+                        properties.get("lifecycle_state", "current")
+                        if isinstance(properties, dict)
+                        else "current",
+                    ),
                 }
             )
             normalized_nodes.append(node)
@@ -137,13 +158,22 @@ class GraphifyJsonProvider:
 
     def health(self, profile: GraphProfile) -> GraphHealth:
         if profile.project_id != self.profile.project_id:
-            return GraphHealth(False, False, 0, 0, (), ("project isolation mismatch",))
+            return GraphHealth(
+                False,
+                False,
+                0,
+                0,
+                (),
+                ("project isolation mismatch",),
+                state="unavailable",
+            )
         try:
             data = self._read_graph()
             age_minutes = (
                 datetime.now(timezone.utc).timestamp() - self.graph_path.stat().st_mtime
             ) / 60
-            stale: set[str] = set()
+            changed: set[str] = set()
+            affected: set[str] = set()
             warnings: list[str] = []
             metadata = data.get("factory_metadata", {})
             manifest = metadata.get("source_fingerprints", {}) if isinstance(metadata, dict) else {}
@@ -154,7 +184,7 @@ class GraphifyJsonProvider:
                 manifest_paths = {
                     path for path in manifest if isinstance(path, str)
                 }
-                stale.update(current_corpus.symmetric_difference(manifest_paths))
+                changed.update(current_corpus.symmetric_difference(manifest_paths))
                 if len(manifest_paths) != len(manifest):
                     warnings.append("malformed graph source manifest")
                 for source_path, fingerprint in manifest.items():
@@ -166,14 +196,14 @@ class GraphifyJsonProvider:
                             source_path, "graph manifest", self.repo_root
                         )
                     except ValueError:
-                        stale.add(source_path)
+                        changed.add(source_path)
                         warnings.append("unsafe graph manifest path")
                         continue
                     if not source.is_file():
-                        stale.add(normalized)
+                        changed.add(normalized)
                         continue
                     if fingerprint not in current_source_fingerprints(source, self.repo_root):
-                        stale.add(normalized)
+                        changed.add(normalized)
             else:
                 warnings.append("malformed graph source manifest")
             for node in data["nodes"]:
@@ -190,32 +220,52 @@ class GraphifyJsonProvider:
                             source_path, "graph node", self.repo_root
                         )
                     except ValueError:
-                        stale.add(source_path)
+                        changed.add(source_path)
+                        affected.add(str(node.get("id", "")))
                         warnings.append("unsafe graph node path")
                         continue
                     if not source.is_file():
-                        stale.add(normalized)
+                        changed.add(normalized)
+                        affected.add(str(node.get("id", "")))
                     else:
                         actual = current_source_fingerprints(source, self.repo_root)
                         if fingerprint not in actual:
-                            stale.add(normalized)
-            fresh = (
-                age_minutes <= profile.freshness_max_age_minutes
-                and not stale
-                and "malformed graph source manifest" not in warnings
-            )
+                            changed.add(normalized)
+                            affected.add(str(node.get("id", "")))
+                elif isinstance(source_path, str) and source_path in changed:
+                    affected.add(str(node.get("id", "")))
+            for node in data["nodes"]:
+                if isinstance(node, dict) and str(node.get("source_path", "")) in changed:
+                    affected.add(str(node.get("id", "")))
             if age_minutes > profile.freshness_max_age_minutes:
-                warnings.append("graph exceeds freshness policy")
+                warnings.append("graph age exceeds freshness policy; fingerprints remain authoritative")
+            degraded = bool(changed) or any(
+                warning
+                for warning in warnings
+                if "age exceeds" not in warning
+            )
+            fresh = not degraded
             return GraphHealth(
                 True,
                 fresh,
                 len(data["nodes"]),
                 len(data["edges"]),
-                tuple(sorted(stale)),
+                tuple(sorted(changed)),
                 tuple(sorted(set(warnings))),
+                state="degraded" if degraded else "current",
+                changed_sources=tuple(sorted(changed)),
+                affected_node_ids=tuple(sorted(node_id for node_id in affected if node_id)),
             )
         except (OSError, ValueError, json.JSONDecodeError) as exc:
-            return GraphHealth(False, False, 0, 0, (), (f"graph unavailable: {exc}",))
+            return GraphHealth(
+                False,
+                False,
+                0,
+                0,
+                (),
+                (f"graph unavailable: {exc}",),
+                state="unavailable",
+            )
 
     def query(self, request: GraphQuery) -> list[GraphContextHit]:
         if request.project_id != self.profile.project_id:
@@ -223,64 +273,184 @@ class GraphifyJsonProvider:
         stage_budget = self.profile.stage_budgets.get(request.stage)
         if not isinstance(stage_budget, int) or stage_budget <= 0:
             raise ValueError("query stage has no configured token budget")
-        effective_budget = min(request.token_budget, stage_budget)
+        stage_limit = self.profile.stage_limits.get(request.stage)
+        summary_budget = (
+            stage_limit.summary_tokens if stage_limit is not None else stage_budget
+        )
+        top_k = stage_limit.top_k if stage_limit is not None else 12
+        effective_budget = min(request.token_budget, stage_budget, summary_budget)
         data = self._read_graph()
         allowed = set(request.allowed_provenance)
         terms = _query_terms(request.question)
-        hits: list[GraphContextHit] = []
-        used_tokens = 0
-        for node in sorted(
-            (item for item in data["nodes"] if isinstance(item, dict)),
-            key=lambda item: (
-                PROVENANCE_ORDER.get(str(item.get("provenance")), 99),
-                -float(item.get("confidence", 0.0)),
-                str(item.get("id", "")),
-            ),
-        ):
+        allowed_roles = set(request.allowed_source_roles)
+
+        def string_tuple(value: object) -> tuple[str, ...]:
+            if isinstance(value, list):
+                return tuple(str(item) for item in value if isinstance(item, str))
+            if isinstance(value, tuple):
+                return tuple(str(item) for item in value if isinstance(item, str))
+            return ()
+
+        def eligible(node: dict, require_terms: bool = True) -> bool:
             if node.get("project_id") != request.project_id:
-                continue
-            if terms and not any(term in _search_text(node) for term in terms):
-                continue
+                return False
+            search_text = _search_text(node)
+            if require_terms and terms and not any(term in search_text for term in terms):
+                return False
             node_route = node.get("route")
             properties = node.get("properties")
             if node_route is None and isinstance(properties, dict):
                 node_route = properties.get("route")
+            node_routes = string_tuple(
+                node.get("routes", properties.get("routes", []))
+                if isinstance(properties, dict)
+                else node.get("routes", [])
+            )
             if request.route is not None:
-                node_routes = properties.get("routes", []) if isinstance(properties, dict) else []
-                if node_route != request.route and request.route not in node_routes:
-                    continue
+                if (node_route or node_routes) and node_route != request.route and request.route not in node_routes:
+                    return False
+            node_stages = string_tuple(
+                node.get("stages", properties.get("stages", []))
+                if isinstance(properties, dict)
+                else node.get("stages", [])
+            )
+            if node_stages and request.stage not in node_stages:
+                return False
+            if str(node.get("type", "")) == "Stage" and isinstance(properties, dict):
+                value = properties.get("value")
+                if isinstance(value, str) and value != request.stage:
+                    return False
             if request.entity_ids:
                 evidence = node.get("evidence_path", [])
                 linked = {str(node.get("id", ""))}
                 if isinstance(evidence, list):
                     linked.update(str(item) for item in evidence)
                 if not linked.intersection(request.entity_ids):
-                    continue
+                    return False
             provenance = str(node.get("provenance", "AMBIGUOUS"))
             if provenance not in allowed:
-                continue
+                return False
+            source_role = str(node.get("source_role", "canonical"))
+            if source_role not in allowed_roles:
+                return False
+            lifecycle = str(node.get("lifecycle_state", "current"))
+            if lifecycle in {"excluded", "changed_dependency"}:
+                return False
+            if lifecycle == "migration_evidence" and not request.include_migration_evidence:
+                return False
+            return True
+
+        def score(node: dict) -> tuple[float, tuple[str, ...]]:
+            search_text = _search_text(node)
+            matched = tuple(sorted(term for term in terms if term in search_text))
+            coverage = len(matched) / len(terms) if terms else 1.0
+            phrase = request.question.strip().casefold()
+            phrase_bonus = 0.5 if phrase and phrase in search_text else 0.0
+            provenance = str(node.get("provenance", "AMBIGUOUS"))
+            provenance_bonus = {"EXTRACTED": 0.2, "INFERRED": 0.1}.get(provenance, 0.0)
+            confidence = float(node.get("confidence_score", 0.0))
+            return round(coverage + phrase_bonus + provenance_bonus + confidence * 0.1, 6), matched
+
+        def to_hit(node: dict, relevance: float, matched: tuple[str, ...]) -> GraphContextHit:
+            properties = node.get("properties")
             summary = str(node.get("summary", node.get("label", ""))).strip()
-            estimate = max(1, (len(summary) + 3) // 4)
-            if used_tokens + estimate > effective_budget:
-                continue
-            used_tokens += estimate
             evidence = node.get("evidence_path", [])
             if not isinstance(evidence, list):
                 evidence = []
-            hits.append(
-                GraphContextHit(
-                    node_id=str(node.get("id", "")),
-                    project_id=request.project_id,
-                    node_type=str(node.get("type", node.get("node_type", "Entity"))),
-                    summary=summary,
-                    source_path=str(node.get("source_path", "")),
-                    source_location=node.get("source_location"),
-                    source_fingerprint=node.get("source_fingerprint"),
-                    provenance=provenance,
-                    confidence=float(node.get("confidence_score", node.get("confidence", 0.0))),
-                    evidence_path=tuple(str(item) for item in evidence),
-                )
+            raw_span = node.get("source_span")
+            source_span = None
+            if (
+                isinstance(raw_span, (list, tuple))
+                and len(raw_span) == 2
+                and all(isinstance(value, int) for value in raw_span)
+            ):
+                source_span = (int(raw_span[0]), int(raw_span[1]))
+            return GraphContextHit(
+                node_id=str(node.get("id", "")),
+                project_id=request.project_id,
+                node_type=str(node.get("type", node.get("node_type", "Entity"))),
+                summary=summary,
+                source_path=str(node.get("source_path", "")),
+                source_location=node.get("source_location"),
+                source_fingerprint=node.get("source_fingerprint"),
+                provenance=str(node.get("provenance", "AMBIGUOUS")),
+                confidence=float(node.get("confidence_score", 0.0)),
+                evidence_path=tuple(str(item) for item in evidence),
+                relevance_score=relevance,
+                matched_terms=matched,
+                source_role=str(node.get("source_role", "canonical")),
+                lifecycle_state=str(node.get("lifecycle_state", "current")),
+                source_locator=node.get("source_locator"),
+                source_span=source_span,
+                file_sha256=node.get("file_sha256"),
+                slice_sha256=node.get("slice_sha256"),
+                routes=string_tuple(
+                    node.get("routes", properties.get("routes", []))
+                    if isinstance(properties, dict)
+                    else node.get("routes", [])
+                ),
+                stages=string_tuple(
+                    node.get("stages", properties.get("stages", []))
+                    if isinstance(properties, dict)
+                    else node.get("stages", [])
+                ),
             )
+
+        nodes_by_id = {
+            str(node.get("id")): node
+            for node in data["nodes"]
+            if isinstance(node, dict) and node.get("id")
+        }
+        adjacent: dict[str, list[str]] = {}
+        for edge in data["edges"]:
+            if not isinstance(edge, dict):
+                continue
+            relation = str(edge.get("relation", ""))
+            if not relation or relation != relation.upper():
+                continue
+            source = str(edge.get("source", ""))
+            target = str(edge.get("target", ""))
+            adjacent.setdefault(source, []).append(target)
+            adjacent.setdefault(target, []).append(source)
+        ranked = []
+        for node in nodes_by_id.values():
+            if eligible(node):
+                relevance, matched = score(node)
+                ranked.append((relevance, matched, node))
+        ranked.sort(
+            key=lambda item: (
+                -item[0],
+                PROVENANCE_ORDER.get(str(item[2].get("provenance")), 99),
+                str(item[2].get("id", "")),
+            )
+        )
+
+        ordered: list[tuple[dict, float, tuple[str, ...]]] = []
+        seen: set[str] = set()
+        for relevance, matched, node in ranked:
+            node_id = str(node.get("id", ""))
+            if node_id not in seen:
+                ordered.append((node, relevance, matched))
+                seen.add(node_id)
+            for dependency_id in sorted(set(adjacent.get(node_id, []))):
+                dependency = nodes_by_id.get(dependency_id)
+                if dependency is None or dependency_id in seen or not eligible(dependency, require_terms=False):
+                    continue
+                dependency_score, dependency_terms = score(dependency)
+                ordered.append((dependency, dependency_score * 0.5, dependency_terms))
+                seen.add(dependency_id)
+
+        hits: list[GraphContextHit] = []
+        used_tokens = 0
+        for node, relevance, matched in ordered:
+            hit = to_hit(node, relevance, matched)
+            estimate = max(1, (len(hit.summary) + 3) // 4)
+            if used_tokens + estimate > effective_budget:
+                continue
+            hits.append(hit)
+            used_tokens += estimate
+            if len(hits) >= top_k:
+                break
         return hits
 
     def update(

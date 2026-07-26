@@ -3,6 +3,10 @@ name: 08-seo-copy-optimizer
 description: "Optimize project visible page or article copy after the SEO brief is defined: H1/H2, intro, body sections, CTA wording, proof wording, and internal-link anchor text. Use as the final body-copy optimization step in SEO FACTORY while handing metadata, FAQ blocks, schema, and link architecture to their dedicated skills."
 ---
 
+## Context entry
+
+Use `shared/context-pack-loader` stdout JSON first. Read sources only via `exact_source_triggers`, changed fingerprints/conflicts, or an explicit cross-cutting audit. Never create tracked `CONTEXT_PACK.md`.
+
 ## Project configuration
 
 Before using any project identity, accepted Latin term, or canonical path, read `.site-factory/project.json`. Resolve source-of-truth, lifecycle, and graph paths from its `paths` mapping. Project-owned sources define the brand, audience, offers, claims, and domain; never infer them from this factory skill. If the config is missing or invalid, stop and ask the owner to run Site Factory `Doctor`.
@@ -42,11 +46,11 @@ Do not replace those skills. Hand off to them when the task moves outside visibl
 - `docs/seo/KEYWORD_MAP.md`, when a brief is missing
 - `docs/seo/CONTENT_GAP_REPORT.md`, when optimization comes from a gap audit
 - `docs/seo/INTERNAL_LINKING_REPORT.md`, when anchor/link context exists
-- `PROJECT_MASTER_CONTEXT.md`
-- `docs/BRAND_STYLE.md`
-- `docs/PRODUCT_MAP.md`
-- `docs/CLAIMS_AND_PROOFS.md`
-- `docs/PERSONAS.md`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
 - Existing page route/content files when implementation is requested
 
 ## Workflow

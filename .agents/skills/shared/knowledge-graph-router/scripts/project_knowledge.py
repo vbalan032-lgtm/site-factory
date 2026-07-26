@@ -7,9 +7,10 @@ import re
 
 from graph_profile import GraphProfile, path_is_excluded, path_is_secret
 from provider import FactoryCatalog, GraphRecord, GraphRelationship
+from source_resolver import resolve_source_slice
 
 
-SUPPORTED_SCHEMA_VERSIONS = {"1.0"}
+SUPPORTED_SCHEMA_VERSIONS = {"1.0", "1.1"}
 BASE_NODE_TYPES = {
     "Project",
     "Document",
@@ -70,6 +71,15 @@ def _safe_source(value: object, repo_root: Path, profile: GraphProfile) -> tuple
     return pure.as_posix(), path
 
 
+def _configured_source_role(source_path: str, profile: GraphProfile) -> str:
+    source_parts = PurePosixPath(source_path).parts
+    for rule in profile.corpus_rules:
+        root_parts = PurePosixPath(rule.root).parts
+        if source_parts[: len(root_parts)] == root_parts:
+            return rule.source_role
+    return "canonical"
+
+
 def load_project_knowledge(profile: GraphProfile, repo_root: Path) -> FactoryCatalog:
     records: dict[str, GraphRecord] = {}
     relationships: set[GraphRelationship] = set()
@@ -89,7 +99,8 @@ def load_project_knowledge(profile: GraphProfile, repo_root: Path) -> FactoryCat
             raise ValueError(f"invalid knowledge seed {configured}: {exc}") from exc
         if not isinstance(data, dict):
             raise ValueError("knowledge seed must be an object")
-        if data.get("schema_version") not in SUPPORTED_SCHEMA_VERSIONS:
+        seed_schema = data.get("schema_version")
+        if seed_schema not in SUPPORTED_SCHEMA_VERSIONS:
             raise ValueError("unsupported knowledge seed schema_version")
         if data.get("project_id") != profile.project_id:
             raise ValueError("knowledge seed project_id does not match profile")
@@ -114,10 +125,46 @@ def load_project_knowledge(profile: GraphProfile, repo_root: Path) -> FactoryCat
                 raise ValueError(f"duplicate knowledge node: {reference}")
             source_path, source = _safe_source(raw.get("source_path"), repo_root, profile)
             node_id = _node_id(profile.project_id, node_type, key)
+            source_locator = raw.get("source_locator")
+            source_span = None
+            file_sha256 = _fingerprint(source)
+            slice_sha256 = None
+            if seed_schema == "1.1":
+                if not isinstance(source_locator, str) or not source_locator.strip():
+                    raise ValueError(f"knowledge node source locator is required: {reference}")
+                try:
+                    resolved_slice = resolve_source_slice(source, source_locator)
+                except (OSError, UnicodeDecodeError, ValueError) as exc:
+                    raise ValueError(
+                        f"knowledge node source locator did not resolve: {reference}: {exc}"
+                    ) from exc
+                source_locator = resolved_slice.source_locator
+                source_span = list(resolved_slice.source_span)
+                file_sha256 = resolved_slice.file_sha256
+                slice_sha256 = resolved_slice.slice_sha256
+            source_role = raw.get(
+                "source_role", _configured_source_role(source_path, profile)
+            )
+            if not isinstance(source_role, str) or not source_role.strip():
+                raise ValueError(f"knowledge node source_role is invalid: {reference}")
+            lifecycle_state = raw.get("lifecycle_state", "current")
+            if lifecycle_state not in {
+                "current",
+                "changed_dependency",
+                "migration_evidence",
+                "excluded",
+            }:
+                raise ValueError(f"knowledge node lifecycle_state is invalid: {reference}")
             properties = {
                 "label": label.strip(),
                 "summary": summary.strip(),
                 "source_location": raw.get("source_location"),
+                "source_locator": source_locator,
+                "source_span": source_span,
+                "file_sha256": file_sha256,
+                "slice_sha256": slice_sha256,
+                "source_role": source_role.strip(),
+                "lifecycle_state": lifecycle_state,
                 "routes": raw.get("routes", []),
                 "stages": raw.get("stages", []),
                 "tags": raw.get("tags", []),
@@ -127,7 +174,7 @@ def load_project_knowledge(profile: GraphProfile, repo_root: Path) -> FactoryCat
                 project_id=profile.project_id,
                 node_type=node_type,
                 source_path=source_path,
-                source_fingerprint=_fingerprint(source),
+                source_fingerprint=file_sha256,
                 properties=properties,
             )
             references[reference] = node_id

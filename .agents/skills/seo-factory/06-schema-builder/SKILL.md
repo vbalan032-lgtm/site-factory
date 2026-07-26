@@ -3,6 +3,10 @@ name: 06-schema-builder
 description: "Create, review, implement, and validate project schema.org JSON-LD for Organization, WebSite, BreadcrumbList, FAQPage, Article, Service, Product when applicable, and SoftwareApplication when applicable. Use after visible content, FAQ, metadata, and page intent are defined; never add unsupported ratings, reviews, prices, awards, certifications, or claims."
 ---
 
+## Context entry
+
+Use `shared/context-pack-loader` stdout JSON first. Read sources only via `exact_source_triggers`, changed fingerprints/conflicts, or an explicit cross-cutting audit. Never create tracked `CONTEXT_PACK.md`.
+
 ## Project configuration
 
 Before using any project identity, accepted Latin term, or canonical path, read `.site-factory/project.json`. Resolve source-of-truth, lifecycle, and graph paths from its `paths` mapping. Project-owned sources define the brand, audience, offers, claims, and domain; never infer them from this factory skill. If the config is missing or invalid, stop and ask the owner to run Site Factory `Doctor`.
@@ -23,10 +27,10 @@ This skill owns structured data only. Use `seo-factory/04-meta-tags-builder` for
 - `docs/pages/<slug>/FAQ_BLOCK.md`, when implementing FAQPage
 - `docs/SITEMAP_V1.md`
 - `docs/seo/KEYWORD_MAP.md`
-- `docs/PRODUCT_MAP.md`
-- `docs/PERSONAS.md`
-- `docs/CLAIMS_AND_PROOFS.md`
-- `PROJECT_MASTER_CONTEXT.md`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
 - Local Next.js docs in `node_modules/next/dist/docs/` before changing Next metadata/script/rendering APIs
 
 ## Workflow
@@ -126,4 +130,3 @@ Do not add unless explicitly supported by source docs and visible page content:
 - Do not position project as generic chatbot AI.
 - Do not use motifs prohibited by the configured brand rules.
 - Production deploy requires human approval.
-

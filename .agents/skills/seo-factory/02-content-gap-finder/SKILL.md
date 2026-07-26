@@ -3,6 +3,10 @@ name: 02-content-gap-finder
 description: Find project SEO and content gaps across sitemap, keyword map, page content, internal links, FAQ coverage, schema, and expert-source opportunities. Use when Codex needs to audit missing pages, weak pages, topics without landing pages, articles without internal links, queries without FAQ, pages without schema, and topics where project should become an authoritative configured domain source.
 ---
 
+## Context entry
+
+Use `shared/context-pack-loader` stdout JSON first. Read sources only via `exact_source_triggers`, changed fingerprints/conflicts, or an explicit cross-cutting audit. Never create tracked `CONTEXT_PACK.md`.
+
 ## Project configuration
 
 Before using any project identity, accepted Latin term, or canonical path, read `.site-factory/project.json`. Resolve source-of-truth, lifecycle, and graph paths from its `paths` mapping. Project-owned sources define the brand, audience, offers, claims, and domain; never infer them from this factory skill. If the config is missing or invalid, stop and ask the owner to run Site Factory `Doctor`.
@@ -16,11 +20,11 @@ Find and prioritize content gaps that prevent project from capturing demand, exp
 This skill is diagnostic. It creates an audit and task recommendations; it does not write full pages, implement SEO changes, or edit production content unless the user explicitly requests follow-up implementation.
 
 ## Inputs
-- `PROJECT_MASTER_CONTEXT.md`
+- ``exact_source_triggers` source`
 - `docs/SITEMAP_V1.md`
-- `docs/PRODUCT_MAP.md`
-- `docs/PERSONAS.md`
-- `docs/CLAIMS_AND_PROOFS.md`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
 - `docs/seo/KEYWORD_MAP.md`, when present
 - `docs/geo/GEO_QUERY_MAP.md`, when present
 - `docs/geo/ENTITY_PROOF_MAP.md`, when present

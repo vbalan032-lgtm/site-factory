@@ -30,6 +30,18 @@ class SnapshotTests(unittest.TestCase):
             manifest[".agents/skills/example/SKILL.md"], r"^sha256:[0-9a-f]{64}$"
         )
 
+    def test_build_manifest_excludes_generated_python_bytecode(self):
+        from factory.snapshot import build_manifest
+
+        cache = self.root / ".agents/skills/example/__pycache__"
+        cache.mkdir()
+        (cache / "module.cpython-312.pyc").write_bytes(b"generated")
+        (self.root / ".agents/skills/example/local.pyc").write_bytes(b"generated")
+
+        manifest = build_manifest(self.root, [".agents/skills"])
+
+        self.assertEqual(set(manifest), {".agents/skills/example/SKILL.md"})
+
     def test_detect_drift_reports_changed_and_missing_files(self):
         from factory.snapshot import build_manifest, detect_drift
 

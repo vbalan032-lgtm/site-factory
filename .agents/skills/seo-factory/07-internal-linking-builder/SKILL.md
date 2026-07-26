@@ -3,6 +3,10 @@ name: 07-internal-linking-builder
 description: "Build, implement, and report project internal linking between homepage, money pages, blog/resources, GEO pages, configured primary offer, configured topics, workflows, and artifacts, demo, pilot, integrations, and commercial pages. Use when Codex needs to plan or update internal links and produce docs/seo/INTERNAL_LINKING_REPORT.md."
 ---
 
+## Context entry
+
+Use `shared/context-pack-loader` stdout JSON first. Read sources only via `exact_source_triggers`, changed fingerprints/conflicts, or an explicit cross-cutting audit. Never create tracked `CONTEXT_PACK.md`.
+
 ## Project configuration
 
 Before using any project identity, accepted Latin term, or canonical path, read `.site-factory/project.json`. Resolve source-of-truth, lifecycle, and graph paths from its `paths` mapping. Project-owned sources define the brand, audience, offers, claims, and domain; never infer them from this factory skill. If the config is missing or invalid, stop and ask the owner to run Site Factory `Doctor`.
@@ -16,7 +20,7 @@ Build internal linking that supports project conversion paths, topical authority
 This skill may implement links in page, article, navigation, or content files when the user asks for updated links. It must always record the work in `docs/seo/INTERNAL_LINKING_REPORT.md`.
 
 ## Inputs
-- `PROJECT_MASTER_CONTEXT.md`
+- ``exact_source_triggers` source`
 - `docs/SITEMAP_V1.md`
 - `docs/seo/KEYWORD_MAP.md`, when present
 - `docs/seo/CONTENT_GAP_REPORT.md`, when present

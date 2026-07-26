@@ -133,10 +133,12 @@ class GraphContextRouterTests(unittest.TestCase):
             )
         self.assertEqual(current.loaded_files, ("docs/source.md",))
         self.assertEqual(len(current.hits), 1)
-        self.assertFalse(current.used_fallback)
+        self.assertTrue(current.used_fallback)
+        self.assertEqual(current.full_file_fallback_reasons, ("unresolved_locator",))
         self.assertEqual(stale.hits, ())
         self.assertTrue(stale.used_fallback)
-        self.assertIn("stale", stale.fallback_reason)
+        self.assertIn("full-file", stale.fallback_reason)
+        self.assertEqual(stale.excluded_hits[0].reason, "changed_source")
 
     def test_accepts_canonical_artifact_fingerprint_format(self):
         runtime = ROOT / "tests/factory/.runtime"
@@ -153,7 +155,8 @@ class GraphContextRouterTests(unittest.TestCase):
             result = self.router.route_context(
                 self.request(), FakeProvider(self.values, health, [self.hit(digest)]), tmp
             )
-        self.assertFalse(result.used_fallback)
+        self.assertTrue(result.used_fallback)
+        self.assertEqual(result.full_file_fallback_reasons, ("unresolved_locator",))
         self.assertEqual(len(result.hits), 1)
 
     def test_stage_budget_caps_caller_budget(self):

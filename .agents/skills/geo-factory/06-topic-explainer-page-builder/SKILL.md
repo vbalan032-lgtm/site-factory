@@ -3,6 +3,10 @@ name: 06-topic-explainer-page-builder
 description: "Create universal project topic explainer pages in a What is topic format for any topic from the sitemap, SEO/GEO plan, or PAGE_QUEUE.md. Use for answer-ready pages about configured primary offer, configured topics, workflows, and artifacts, configured industry standard, configured domain topics, configured technology offerings, configured technology offers, configured domain topic, configured artifact automation, and related configured domain topics."
 ---
 
+## Context entry
+
+Use `shared/context-pack-loader` stdout JSON first. Read sources only via `exact_source_triggers`, changed fingerprints/conflicts, or an explicit cross-cutting audit. Never create tracked `CONTEXT_PACK.md`.
+
 ## Project configuration
 
 Before using any project identity, accepted Latin term, or canonical path, read `.site-factory/project.json`. Resolve source-of-truth, lifecycle, and graph paths from its `paths` mapping. Project-owned sources define the brand, audience, offers, claims, and domain; never infer them from this factory skill. If the config is missing or invalid, stop and ask the owner to run Site Factory `Doctor`.
@@ -22,11 +26,11 @@ Keep project framed as the positioning defined in configured business sources. K
 - Target topic
 - Target route, page queue item, sitemap entry, SEO keyword cluster, or GEO query
 - Target audience and funnel stage
-- `PROJECT_MASTER_CONTEXT.md`
-- `docs/BRAND_STYLE.md`
-- `docs/PRODUCT_MAP.md`
-- `docs/CLAIMS_AND_PROOFS.md`
-- `docs/PERSONAS.md`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
 - `docs/SITEMAP_V1.md`
 - `docs/seo/KEYWORD_MAP.md`, when present
 - `docs/geo/GEO_QUERY_MAP.md`, when present

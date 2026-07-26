@@ -1,18 +1,65 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "project_id": "example-site",
   "provider": "graphify-json",
   "provider_settings_ref": null,
   "extraction_mode": "code-only",
   "knowledge_seed_paths": ["docs/system/knowledge-graph/PROJECT_KNOWLEDGE.json"],
-  "corpus_roots": ["PROJECT_MASTER_CONTEXT.md", "docs", "app", "components", "lib"],
-  "exclude_globs": ["**/.env*", "graphify-out/**", "docs/**/migration-archive/**", "docs/system/skill-archive/**", "docs/system/skill-backups/**"],
+  "corpus_roots": [
+    "PROJECT_MASTER_CONTEXT.md",
+    "docs/BRAND_STYLE.md",
+    "docs/PRODUCT_MAP.md",
+    "docs/CLAIMS_AND_PROOFS.md",
+    "docs/PERSONAS.md",
+    "docs/BUSINESS_ARCHITECTURE.md",
+    "docs/SITEMAP.md",
+    "docs/pages",
+    "docs/site",
+    "docs/system",
+    "app",
+    "components",
+    "lib"
+  ],
+  "corpus_rules": [
+    {"root": "PROJECT_MASTER_CONTEXT.md", "source_role": "canonical", "stages": ["01-page-contract", "02-creative-blueprint", "03-conversion-copy", "04-page-assets", "05-full-page-build", "06-integrated-qa-refinement", "07-release-growth"], "index_mode": "sections"},
+    {"root": "docs/BRAND_STYLE.md", "source_role": "design", "stages": ["01-page-contract", "02-creative-blueprint", "03-conversion-copy", "04-page-assets", "05-full-page-build", "06-integrated-qa-refinement", "07-release-growth"], "index_mode": "sections"},
+    {"root": "docs/PRODUCT_MAP.md", "source_role": "canonical", "stages": ["01-page-contract", "02-creative-blueprint", "03-conversion-copy", "04-page-assets", "05-full-page-build", "06-integrated-qa-refinement", "07-release-growth"], "index_mode": "sections"},
+    {"root": "docs/CLAIMS_AND_PROOFS.md", "source_role": "canonical", "stages": ["01-page-contract", "03-conversion-copy", "06-integrated-qa-refinement", "07-release-growth"], "index_mode": "sections"},
+    {"root": "docs/PERSONAS.md", "source_role": "canonical", "stages": ["01-page-contract", "02-creative-blueprint", "03-conversion-copy", "06-integrated-qa-refinement"], "index_mode": "sections"},
+    {"root": "docs/BUSINESS_ARCHITECTURE.md", "source_role": "canonical", "stages": ["01-page-contract", "02-creative-blueprint", "03-conversion-copy", "06-integrated-qa-refinement", "07-release-growth"], "index_mode": "sections"},
+    {"root": "docs/SITEMAP.md", "source_role": "canonical", "stages": ["01-page-contract", "02-creative-blueprint", "03-conversion-copy", "04-page-assets", "05-full-page-build", "06-integrated-qa-refinement", "07-release-growth"], "index_mode": "sections"},
+    {"root": "docs/pages", "source_role": "page_artifact", "stages": ["01-page-contract", "02-creative-blueprint", "03-conversion-copy", "04-page-assets", "05-full-page-build", "06-integrated-qa-refinement", "07-release-growth"], "index_mode": "sections"},
+    {"root": "docs/site", "source_role": "lifecycle", "stages": ["01-page-contract", "02-creative-blueprint", "03-conversion-copy", "04-page-assets", "05-full-page-build", "06-integrated-qa-refinement", "07-release-growth"], "index_mode": "sections"},
+    {"root": "docs/system", "source_role": "lifecycle", "stages": ["01-page-contract", "02-creative-blueprint", "03-conversion-copy", "04-page-assets", "05-full-page-build", "06-integrated-qa-refinement", "07-release-growth"], "index_mode": "sections"},
+    {"root": "app", "source_role": "implementation", "stages": ["05-full-page-build", "06-integrated-qa-refinement", "07-release-growth"], "index_mode": "code-symbols"},
+    {"root": "components", "source_role": "implementation", "stages": ["05-full-page-build", "06-integrated-qa-refinement", "07-release-growth"], "index_mode": "code-symbols"},
+    {"root": "lib", "source_role": "implementation", "stages": ["05-full-page-build", "06-integrated-qa-refinement", "07-release-growth"], "index_mode": "code-symbols"}
+  ],
+  "exclude_globs": [
+    "**/.env*",
+    ".agents/**",
+    "graphify-out/**",
+    "docs/**/migration-archive/**",
+    "docs/system/skill-archive/**",
+    "docs/system/skill-backups/**",
+    "docs/system/knowledge-graph/GRAPH_PROFILE.json",
+    "docs/system/knowledge-graph/PROJECT_KNOWLEDGE.json",
+    "docs/system/knowledge-graph/BENCHMARK_CASES.json",
+    "docs/system/knowledge-graph/GRAPH_STATUS.json"
+  ],
   "artifact_roots": ["docs/pages"],
   "output_path": "graphify-out/graph.json",
   "public_locale": "ru-RU",
   "freshness_max_age_minutes": 1440,
   "entity_aliases": {},
   "ontology_extensions": [],
-  "stage_budgets": {"01-page-contract": 8000, "02-creative-blueprint": 7000, "03-conversion-copy": 7000, "06-integrated-qa-refinement": 5000}
+  "stage_budgets": {
+    "01-page-contract": {"summary_tokens": 1000, "exact_tokens": 600, "total_tokens": 1800, "top_k": 8},
+    "02-creative-blueprint": {"summary_tokens": 1000, "exact_tokens": 500, "total_tokens": 1800, "top_k": 8},
+    "03-conversion-copy": {"summary_tokens": 900, "exact_tokens": 500, "total_tokens": 1600, "top_k": 8},
+    "04-page-assets": {"summary_tokens": 500, "exact_tokens": 300, "total_tokens": 1000, "top_k": 6},
+    "05-full-page-build": {"summary_tokens": 700, "exact_tokens": 500, "total_tokens": 1400, "top_k": 8},
+    "06-integrated-qa-refinement": {"summary_tokens": 900, "exact_tokens": 700, "total_tokens": 1800, "top_k": 10},
+    "07-release-growth": {"summary_tokens": 400, "exact_tokens": 500, "total_tokens": 900, "top_k": 6}
+  }
 }
-

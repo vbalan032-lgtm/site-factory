@@ -3,6 +3,10 @@ name: 03-page-seo-brief-builder
 description: Create project page SEO briefs with primary keyword, secondary keywords, search intent, title, description, H1, H2 structure, FAQ, schema type, internal links, content requirements, and proof requirements. Use when Codex needs a complete SEO brief before writing, assembling, optimizing, or enhancing a project page or article.
 ---
 
+## Context entry
+
+Use `shared/context-pack-loader` stdout JSON first. Read sources only via `exact_source_triggers`, changed fingerprints/conflicts, or an explicit cross-cutting audit. Never create tracked `CONTEXT_PACK.md`.
+
 ## Project configuration
 
 Before using any project identity, accepted Latin term, or canonical path, read `.site-factory/project.json`. Resolve source-of-truth, lifecycle, and graph paths from its `paths` mapping. Project-owned sources define the brand, audience, offers, claims, and domain; never infer them from this factory skill. If the config is missing or invalid, stop and ask the owner to run Site Factory `Doctor`.
@@ -16,14 +20,14 @@ Create a complete, proof-aware SEO brief for one project page or article so down
 The brief must keep project positioned as the positioning defined in configured business sources, with configured primary offer as the entry offer and the broader configured offer portfolio and growth path.
 
 ## Inputs
-- `PROJECT_MASTER_CONTEXT.md`
+- ``exact_source_triggers` source`
 - `docs/SITEMAP_V1.md`
-- `docs/PRODUCT_MAP.md`
-- `docs/PERSONAS.md`
-- `docs/CLAIMS_AND_PROOFS.md`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
 - `docs/seo/KEYWORD_MAP.md`
 - `docs/seo/CONTENT_GAP_REPORT.md`, when the brief comes from a gap audit
-- `docs/pages/<slug>/CONTEXT_PACK.md`, when present
+- `docs/pages/<slug>/context-pack-loader stdout JSON`, when present
 - `docs/pages/<slug>/SITE_CONTEXT.md`, when present
 - `docs/geo/GEO_QUERY_MAP.md`, when GEO/AI-answer visibility matters
 - Existing page or route content when briefing an update

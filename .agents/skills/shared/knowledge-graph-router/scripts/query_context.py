@@ -9,15 +9,20 @@ import sys
 
 from fingerprints import current_source_fingerprints
 from provider import (
+    BudgetBreakdown,
     ContextRequest,
     ContextResult,
+    ExactEvidenceSlice,
+    ExcludedContextHit,
     GraphContextHit,
     GraphQuery,
     KnowledgeGraphProvider,
+    SourceReadTrigger,
 )
+from source_resolver import resolve_source_slice
 
 SENSITIVE_INTENT = re.compile(
-    r"(?:claim|proof|approval|conflict|release|production|утвержден|доказ|согласован|конфликт|спор|релиз)",
+    r"(?:claim|proof|approval|conflict|release|production|СѓС‚РІРµСЂР¶РґРµРЅ|РґРѕРєР°Р·|СЃРѕРіР»Р°СЃРѕРІР°РЅ|РєРѕРЅС„Р»РёРєС‚|СЃРїРѕСЂ|СЂРµР»РёР·)",
     re.IGNORECASE,
 )
 
@@ -54,9 +59,57 @@ def _filesystem_files(
     return tuple(dict.fromkeys(loaded)), max(0, (characters + 3) // 4)
 
 
-def _fallback(request: ContextRequest, repo_root: Path, reason: str) -> ContextResult:
+def _limits(request: ContextRequest, profile: object) -> tuple[int, int, int, int]:
+    stage = request.query.stage
+    stage_budgets = getattr(profile, "stage_budgets", {})
+    total = stage_budgets.get(stage)
+    if not isinstance(total, int) or total <= 0:
+        total = max(1, request.query.token_budget)
+    total = min(total, request.query.token_budget)
+    limits = getattr(profile, "stage_limits", {})
+    limit = limits.get(stage) if isinstance(limits, dict) else None
+    if limit is None:
+        return total, total, total, 12
+    return (
+        min(total, int(limit.summary_tokens)),
+        min(total, int(limit.exact_tokens)),
+        min(total, int(limit.total_tokens)),
+        int(limit.top_k),
+    )
+
+
+def _fallback(
+    request: ContextRequest,
+    repo_root: Path,
+    reason: str,
+    profile: object | None = None,
+    health: object | None = None,
+) -> ContextResult:
     files, tokens = _filesystem_files(request.filesystem_allowlist, repo_root)
-    return ContextResult((), files, True, reason, tokens)
+    summary_limit, exact_limit, total_limit, top_k = _limits(
+        request, profile or object()
+    )
+    budget = BudgetBreakdown(
+        0,
+        0,
+        tokens,
+        tokens,
+        summary_limit,
+        exact_limit,
+        total_limit,
+        top_k,
+    )
+    return ContextResult(
+        (),
+        files,
+        True,
+        reason,
+        tokens,
+        budget_breakdown=budget,
+        full_file_fallback_reasons=(reason,),
+        exact_source_triggers=tuple(SourceReadTrigger(path, reason) for path in files),
+        graph_health=health,
+    )
 
 
 def route_context(
@@ -68,66 +121,154 @@ def route_context(
     stage_budgets = getattr(profile, "stage_budgets", {})
     stage_budget = stage_budgets.get(request.query.stage)
     if not isinstance(stage_budget, int) or stage_budget <= 0:
-        return _fallback(request, repo_root, "stage budget unavailable")
+        return _fallback(request, repo_root, "stage budget unavailable", profile)
+    summary_limit, exact_limit, total_limit, top_k = _limits(request, profile)
     effective_budget = min(request.query.token_budget, stage_budget)
     effective_query = replace(request.query, token_budget=effective_budget)
     try:
         health = provider.health(profile)
     except Exception as exc:  # provider boundary must preserve filesystem operation
-        return _fallback(request, repo_root, f"graph unavailable: {exc}")
+        return _fallback(request, repo_root, f"graph unavailable: {exc}", profile)
     if not health.available:
-        return _fallback(request, repo_root, "graph unavailable")
-    if not health.fresh:
-        return _fallback(request, repo_root, "graph stale")
+        return _fallback(request, repo_root, "graph unavailable", profile, health)
 
     try:
         candidate_hits = provider.query(effective_query)
     except Exception as exc:
-        return _fallback(request, repo_root, f"graph query unavailable: {exc}")
+        return _fallback(
+            request, repo_root, f"graph query unavailable: {exc}", profile, health
+        )
     if any(hit.project_id != effective_query.project_id for hit in candidate_hits):
-        return _fallback(request, repo_root, "cross-project graph result rejected")
+        return _fallback(
+            request,
+            repo_root,
+            "cross-project graph result rejected",
+            profile,
+            health,
+        )
 
     allowed_files = set(request.filesystem_allowlist)
     accepted: list[GraphContextHit] = []
-    exact_files: list[str] = []
-    stale_found = False
+    exact_slices: list[ExactEvidenceSlice] = []
+    excluded: list[ExcludedContextHit] = []
+    full_files: list[str] = []
+    full_file_reasons: list[str] = []
+    source_triggers: list[SourceReadTrigger] = []
     exact_blocked = False
     sensitive_intent = bool(SENSITIVE_INTENT.search(effective_query.question))
-    estimated_tokens = 0
+    summary_tokens = 0
+    exact_tokens = 0
+    affected_ids = set(getattr(health, "affected_node_ids", ()))
+    changed_sources = set(
+        getattr(health, "changed_sources", getattr(health, "stale_sources", ()))
+    )
+
+    def add_full_file(relative: str, reason: str) -> None:
+        if relative in allowed_files:
+            full_files.append(relative)
+            full_file_reasons.append(reason)
+            source_triggers.append(SourceReadTrigger(relative, reason))
+
+    def add_exact_slice(hit: GraphContextHit, relative: str, path: Path, reason: str) -> bool:
+        nonlocal exact_tokens
+        locator = hit.source_locator
+        if not isinstance(locator, str) or not locator.strip():
+            add_full_file(relative, "unresolved_locator")
+            return False
+        try:
+            resolved_slice = resolve_source_slice(path, locator)
+        except (OSError, UnicodeDecodeError, ValueError):
+            add_full_file(relative, "unresolved_locator")
+            return False
+        estimate = max(1, (len(resolved_slice.text) + 3) // 4)
+        if exact_tokens + estimate > exact_limit:
+            excluded.append(
+                ExcludedContextHit(hit.node_id, relative, "exact_budget_exceeded")
+            )
+            return False
+        exact_tokens += estimate
+        exact_slices.append(
+            ExactEvidenceSlice(
+                node_id=hit.node_id,
+                source_path=relative,
+                source_locator=resolved_slice.source_locator,
+                source_span=resolved_slice.source_span,
+                text=resolved_slice.text,
+                file_sha256=resolved_slice.file_sha256,
+                slice_sha256=resolved_slice.slice_sha256,
+                reason=reason,
+            )
+        )
+        return True
+
     for hit in candidate_hits:
+        if hit.lifecycle_state in {"excluded", "migration_evidence", "changed_dependency"}:
+            excluded.append(
+                ExcludedContextHit(hit.node_id, hit.source_path, hit.lifecycle_state)
+            )
+            continue
         resolved = _safe_relative(hit.source_path, repo_root)
         if resolved is None:
-            stale_found = True
+            excluded.append(
+                ExcludedContextHit(hit.node_id, hit.source_path, "unsafe_source_path")
+            )
             continue
         relative, path = resolved
-        if not path.is_file() or not hit.source_fingerprint:
-            stale_found = True
+        if not path.is_file():
+            excluded.append(
+                ExcludedContextHit(hit.node_id, relative, "missing_source")
+            )
+            continue
+        is_affected = hit.node_id in affected_ids or relative in changed_sources
+        fingerprint_current = False
+        if hit.source_fingerprint:
+            try:
+                fingerprint_current = hit.source_fingerprint in current_source_fingerprints(
+                    path, repo_root
+                )
+            except OSError:
+                fingerprint_current = False
+        if is_affected or not fingerprint_current:
+            excluded.append(
+                ExcludedContextHit(hit.node_id, relative, "changed_source")
+            )
+            if relative in allowed_files:
+                add_exact_slice(hit, relative, path, "changed_source")
+            else:
+                exact_blocked = True
             continue
         try:
-            current = current_source_fingerprints(path, repo_root)
+            current_source_fingerprints(path, repo_root)
         except OSError:
-            stale_found = True
-            continue
-        if hit.source_fingerprint not in current:
-            stale_found = True
-            if relative in allowed_files:
-                exact_files.append(relative)
+            excluded.append(
+                ExcludedContextHit(hit.node_id, relative, "unreadable_source")
+            )
             continue
         requires_exact = (
             hit.node_type in request.require_exact_types
             or hit.node_type.lower() in {"document", "concept", "rationale"}
-            or sensitive_intent
+            or (
+                sensitive_intent
+                and hit.node_type
+                in {"Evidence", "Status", "Artifact", "ReleaseEvidence"}
+            )
         )
         if requires_exact and relative not in allowed_files:
             exact_blocked = True
+            excluded.append(
+                ExcludedContextHit(hit.node_id, relative, "outside_allowlist")
+            )
             continue
         estimate = max(1, (len(hit.summary) + 3) // 4)
-        if estimated_tokens + estimate > effective_budget:
+        if summary_tokens + estimate > summary_limit or len(accepted) >= top_k:
+            excluded.append(
+                ExcludedContextHit(hit.node_id, relative, "summary_budget_exceeded")
+            )
             continue
         accepted.append(hit)
-        estimated_tokens += estimate
+        summary_tokens += estimate
         if requires_exact:
-            exact_files.append(relative)
+            add_exact_slice(hit, relative, path, "current")
             for evidence in hit.evidence_path:
                 evidence_resolved = _safe_relative(evidence, repo_root)
                 if evidence_resolved is None:
@@ -138,36 +279,67 @@ def route_context(
                 if evidence_relative not in allowed_files:
                     exact_blocked = True
                     continue
-                exact_files.append(evidence_relative)
+                if evidence_relative != relative:
+                    add_full_file(evidence_relative, "unresolved_locator")
 
-    loaded_files = tuple(dict.fromkeys(exact_files))
+    if exact_blocked and not full_files:
+        files, _ = _filesystem_files(request.filesystem_allowlist, repo_root)
+        full_files.extend(files)
+        full_file_reasons.append("exact_source_outside_allowlist")
+
+    loaded_files = tuple(dict.fromkeys(full_files))
+    full_file_tokens = 0
     for relative in loaded_files:
         path = repo_root / relative
         try:
-            estimated_tokens += max(1, (len(path.read_text(encoding="utf-8")) + 3) // 4)
+            full_file_tokens += max(
+                1, (len(path.read_text(encoding="utf-8")) + 3) // 4
+            )
         except (OSError, UnicodeDecodeError):
-            stale_found = True
+            full_file_reasons.append("unreadable_full_file")
 
-    if stale_found or exact_blocked:
-        if not loaded_files:
-            files, file_tokens = _filesystem_files(request.filesystem_allowlist, repo_root)
-            loaded_files = files
-            estimated_tokens += file_tokens
-        reason = (
-            "exact canonical source outside allowlist"
-            if exact_blocked
-            else "stale graph fingerprint"
-        )
-        return ContextResult(tuple(accepted), loaded_files, True, reason, estimated_tokens)
-    if estimated_tokens > effective_budget:
-        return ContextResult(
-            tuple(accepted),
-            loaded_files,
-            True,
-            "exact-file safety exceeded soft stage budget",
-            estimated_tokens,
-        )
-    return ContextResult(tuple(accepted), loaded_files, False, None, estimated_tokens)
+    estimated_tokens = summary_tokens + exact_tokens + full_file_tokens
+    targeted_refresh = any(item.reason == "changed_source" for item in excluded)
+    used_fallback = bool(loaded_files or exact_blocked or targeted_refresh)
+    fallback_reason = None
+    if exact_blocked:
+        fallback_reason = "exact canonical source outside allowlist"
+    elif loaded_files:
+        fallback_reason = "full-file fallback required"
+    elif targeted_refresh:
+        fallback_reason = "changed source refreshed by exact slice"
+    if estimated_tokens > total_limit and not loaded_files:
+        used_fallback = True
+        fallback_reason = "context exceeded stage total budget"
+    budget = BudgetBreakdown(
+        summary_tokens=summary_tokens,
+        exact_tokens=exact_tokens,
+        full_file_tokens=full_file_tokens,
+        total_tokens=estimated_tokens,
+        summary_limit=summary_limit,
+        exact_limit=exact_limit,
+        total_limit=total_limit,
+        top_k=top_k,
+    )
+    return ContextResult(
+        hits=tuple(accepted),
+        loaded_files=loaded_files,
+        used_fallback=used_fallback,
+        fallback_reason=fallback_reason,
+        estimated_tokens=estimated_tokens,
+        summaries=tuple(accepted),
+        exact_slices=tuple(exact_slices),
+        excluded_hits=tuple(excluded),
+        budget_breakdown=budget,
+        full_file_fallback_reasons=tuple(dict.fromkeys(full_file_reasons)),
+        exact_source_triggers=tuple(
+            {
+                (item.source_path, item.reason): item
+                for item in source_triggers
+            }.values()
+        ),
+        graph_health=health,
+    )
 
 
 def main() -> int:
@@ -184,6 +356,11 @@ def main() -> int:
     parser.add_argument("--entity", action="append", default=[])
     parser.add_argument("--allow-file", action="append", default=[])
     parser.add_argument("--token-budget", type=int)
+    parser.add_argument(
+        "--migration-evidence",
+        action="store_true",
+        help="diagnostic opt-in for excluded migration archive evidence",
+    )
     args = parser.parse_args()
 
     from graph_profile import load_graph_profile
@@ -202,6 +379,7 @@ def main() -> int:
         route=args.route,
         entity_ids=tuple(args.entity),
         token_budget=args.token_budget or configured_budget,
+        include_migration_evidence=args.migration_evidence,
     )
     request = ContextRequest(query, tuple(args.allow_file))
     result = route_context(

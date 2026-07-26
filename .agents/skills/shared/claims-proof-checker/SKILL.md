@@ -3,6 +3,10 @@ name: claims-proof-checker
 description: "Use when a project contract, public copy, SEO/GEO artifact, or release candidate contains claims, numbers, comparisons, guarantees, or proof risk."
 ---
 
+## Context entry
+
+Use `shared/context-pack-loader` stdout JSON first. Read sources only via `exact_source_triggers`, changed fingerprints/conflicts, or an explicit cross-cutting audit. Never create tracked `CONTEXT_PACK.md`.
+
 ## Project configuration
 
 Before using any project identity, accepted Latin term, or canonical path, read `.site-factory/project.json`. Resolve source-of-truth, lifecycle, and graph paths from its `paths` mapping. Project-owned sources define the brand, audience, offers, claims, and domain; never infer them from this factory skill. If the config is missing or invalid, stop and ask the owner to run Site Factory `Doctor`.
@@ -15,9 +19,9 @@ Check claims in one concrete artifact against approved proof constraints. This s
 
 ## Inputs
 - Text, page, block, FAQ, metadata, schema copy, GEO content, comparison page, or QA candidate.
-- `docs/CLAIMS_AND_PROOFS.md`.
-- `PROJECT_MASTER_CONTEXT.md`.
-- `docs/PRODUCT_MAP.md`, when product claims appear.
+- ``exact_source_triggers` source`.
+- ``exact_source_triggers` source`.
+- ``exact_source_triggers` source`, when product claims appear.
 - Source materials named by the user, when available.
 
 ## Workflow

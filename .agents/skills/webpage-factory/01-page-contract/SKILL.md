@@ -3,6 +3,10 @@ name: 01-page-contract
 description: Use when a queued project page needs one trusted contract before creative, copy, assets, implementation, SEO/GEO, or release work begins.
 ---
 
+## Context entry
+
+Use `shared/context-pack-loader` stdout JSON first. Read sources only via `exact_source_triggers`, changed fingerprints/conflicts, or an explicit cross-cutting audit. Never create tracked `CONTEXT_PACK.md`.
+
 ## Project configuration
 
 Before using any project identity, accepted Latin term, or canonical path, read `.site-factory/project.json`. Resolve source-of-truth, lifecycle, and graph paths from its `paths` mapping. Project-owned sources define the brand, audience, offers, claims, and domain; never infer them from this factory skill. If the config is missing or invalid, stop and ask the owner to run Site Factory `Doctor`.
@@ -15,7 +19,7 @@ Create the single trusted `PAGE_CONTRACT.md` for one complete page. Consolidate 
 ## Inputs
 
 - Canonical row in `docs/site/PAGE_QUEUE.md`.
-- `PROJECT_MASTER_CONTEXT.md`.
+- ``exact_source_triggers` source`.
 - Targeted source documents selected by `context-pack-loader`.
 - Existing route, implementation, and legacy artifacts only as migration evidence.
 

@@ -3,6 +3,10 @@ name: 01-geo-query-map-builder
 description: Create a project Generative Engine Optimization query map for AI answer engines, buyer questions, entity relationships, and citation targets.
 ---
 
+## Context entry
+
+Use `shared/context-pack-loader` stdout JSON first. Read sources only via `exact_source_triggers`, changed fingerprints/conflicts, or an explicit cross-cutting audit. Never create tracked `CONTEXT_PACK.md`.
+
 ## Project configuration
 
 Before using any project identity, accepted Latin term, or canonical path, read `.site-factory/project.json`. Resolve source-of-truth, lifecycle, and graph paths from its `paths` mapping. Project-owned sources define the brand, audience, offers, claims, and domain; never infer them from this factory skill. If the config is missing or invalid, stop and ask the owner to run Site Factory `Doctor`.
@@ -14,10 +18,10 @@ Before using any project identity, accepted Latin term, or canonical path, read 
 Plan how project should be understood, summarized, and cited by AI answer engines for configured domain expertise, configured primary offer, configured secondary offers, and configured integration topics.
 
 ## Inputs
-- `PROJECT_MASTER_CONTEXT.md`
+- ``exact_source_triggers` source`
 - `docs/SITEMAP_V1.md`
-- `docs/PRODUCT_MAP.md`
-- `docs/CLAIMS_AND_PROOFS.md`
+- ``exact_source_triggers` source`
+- ``exact_source_triggers` source`
 - `docs/seo/KEYWORD_MAP.md`, when present
 
 ## Workflow
