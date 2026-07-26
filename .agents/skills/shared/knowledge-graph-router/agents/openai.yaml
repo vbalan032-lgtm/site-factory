@@ -1,0 +1,4 @@
+interface:
+  display_name: "Knowledge Graph Router"
+  short_description: "Graph-first context with safe fallback"
+  default_prompt: "Use $knowledge-graph-router to load compact, fingerprint-checked project context with filesystem fallback."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Content Gap Finder"
+  short_description: "Find project SEO, FAQ, schema, linking, and expert-source gaps"
+  default_prompt: "Use $02-content-gap-finder to audit project content gaps across sitemap, keyword map, pages, FAQ, schema, internal links, and expert-source opportunities."

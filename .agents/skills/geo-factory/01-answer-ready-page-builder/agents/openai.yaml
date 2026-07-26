@@ -1,0 +1,4 @@
+interface:
+  display_name: "Answer Ready Page Builder"
+  short_description: "Create project pages that AI search can understand, cite, and summarize."
+  default_prompt: "Create an answer-ready project page plan for the target route, including a direct answer, definitions, structured lists, comparison table, expert block, FAQ, and commercial links."

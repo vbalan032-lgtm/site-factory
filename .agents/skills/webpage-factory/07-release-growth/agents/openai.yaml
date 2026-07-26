@@ -1,0 +1,4 @@
+interface:
+  display_name: "project Release and Growth"
+  short_description: "Controls staging, release, and growth gates"
+  default_prompt: "Use $07-release-growth for exactly one approved staging, production release, or evidence-led growth transition."

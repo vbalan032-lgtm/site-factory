@@ -1,0 +1,4 @@
+interface:
+  display_name: "Loop Status Updater"
+  short_description: "Update project Loop Engine status files after a task result."
+  default_prompt: "Update project Loop Engine status files from the latest task result. Read NEXT_TASK and relevant status files, update only relevant entries, add a dated LOOP_LOG entry, record blockers or owner approval requirements, and do not choose or execute the next task."

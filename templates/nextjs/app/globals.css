@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+:root {
+  --color-paper: #f7f5f0;
+  --color-text: #171717;
+  --color-text-muted: #626262;
+  --color-surface: #ffffff;
+  --color-border: #d8d5cd;
+  --color-border-strong: #aaa69b;
+  --color-project-red: #9f2f24;
+  --color-project-red-soft: #f0d6d1;
+  --color-project-red-strong: #761d16;
+  --color-on-primary: #ffffff;
+  --radius-md: 0.5rem;
+  --font-sans-stack: Arial, "Helvetica Neue", sans-serif;
+  --background: var(--color-paper);
+  --foreground: var(--color-text);
+  --primary: var(--color-project-red);
+  --primary-foreground: var(--color-on-primary);
+  --secondary: var(--color-surface);
+  --secondary-foreground: var(--color-text);
+  --muted: var(--color-surface);
+  --muted-foreground: var(--color-text-muted);
+  --accent: var(--color-project-red-soft);
+  --accent-foreground: var(--color-project-red-strong);
+  --destructive: var(--color-project-red-strong);
+  --border: var(--color-border);
+  --input: var(--color-border-strong);
+  --ring: var(--color-project-red);
+  --radius: var(--radius-md);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --font-sans: var(--font-sans-stack);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--background); color: var(--foreground); font-family: var(--font-sans-stack); }
+main { width: min(52rem, calc(100% - 2rem)); margin: 20vh auto; }
+h1 { max-width: 18ch; font-size: clamp(2.25rem, 7vw, 5rem); line-height: 0.98; }
+p { max-width: 60ch; font-size: 1.1rem; line-height: 1.6; }
+.eyebrow { color: var(--primary); font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Context Pack Loader"
+  short_description: "Create a concise project context pack for one task."
+  default_prompt: "Create a short project context pack for the current task with sources used, relevant facts, constraints, risks, and owner skills. Do not generate final content or code."

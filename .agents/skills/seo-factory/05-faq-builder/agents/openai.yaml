@@ -1,0 +1,4 @@
+interface:
+  display_name: "FAQ Builder"
+  short_description: "Create project FAQ blocks with direct answers, expert explanations, funnel fit, and schema readiness"
+  default_prompt: "Use $05-faq-builder to create a project page FAQ block with 5-8 buyer-relevant questions, short direct answers, expert explanations, proof-safe wording, funnel-stage alignment, and FAQPage schema readiness."

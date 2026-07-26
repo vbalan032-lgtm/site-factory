@@ -1,0 +1,4 @@
+interface:
+  display_name: "Claims Proof Checker"
+  short_description: "Check claims in one project artifact against proof limits."
+  default_prompt: "Check the target project artifact for claims and proof risk. Return claim-by-claim findings, pass/fail status, proof gaps, and safe wording suggestions."

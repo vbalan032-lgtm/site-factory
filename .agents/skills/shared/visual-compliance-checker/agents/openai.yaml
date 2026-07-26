@@ -1,0 +1,4 @@
+interface:
+  display_name: "Visual Compliance Checker"
+  short_description: "Check project visual style compliance."
+  default_prompt: "Check the target project visual artifact for visual compliance. Return pass/fail status, blockers, warnings, evidence, and owner skills for fixes."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Meta Tags Builder"
+  short_description: "Write and implement project title, description, OG, canonical, robots, and image alt"
+  default_prompt: "Use $04-meta-tags-builder to write, review, and implement metadata for a project page: title, description, OpenGraph, Twitter/X cards when used, canonical, robots meta, and alt text for key images."

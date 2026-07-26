@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  factory:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Factory regression tests
+        run: python -m unittest discover -s tests/factory -p "test_*.py" -v
+      - name: Bootstrap clean-room tests
+        run: python -m unittest discover -s tests/bootstrap -p "test_*.py" -v
+      - name: Validate skills
+        run: python .agents/skills/shared/factory-contracts/scripts/validate_skills.py .agents/skills
+      - name: Package and verify
+        shell: pwsh
+        run: |
+          .\bootstrap.ps1 -Mode Pack -Output dist -Apply
+          $Archive = Get-ChildItem dist\*.zip | Select-Object -First 1
+          $Checksum = Get-ChildItem dist\*.sha256 | Select-Object -First 1
+          $Manifest = Get-ChildItem dist\*.manifest.json | Select-Object -First 1
+          .\bootstrap.ps1 -Mode Verify -Archive $Archive.FullName -Checksum $Checksum.FullName -Manifest $Manifest.FullName
+
+  starter:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22.x, 24.x]
+    defaults:
+      run:
+        working-directory: templates/nextjs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: templates/nextjs/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run build

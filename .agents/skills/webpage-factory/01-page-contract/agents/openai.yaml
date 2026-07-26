@@ -1,0 +1,4 @@
+interface:
+  display_name: "project Page Contract"
+  short_description: "Create the trusted page contract"
+  default_prompt: "Use $01-page-contract to create and validate the trusted contract for the selected project page."

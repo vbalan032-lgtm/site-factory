@@ -1,0 +1,4 @@
+interface:
+  display_name: "GEO FAQ Builder"
+  short_description: "Create answer-engine-ready project FAQ blocks without promotional noise."
+  default_prompt: "Create a GEO FAQ block for the target project page with user-style AI questions, direct first-sentence answers, expert explanations, project links, schema readiness, and proof notes."

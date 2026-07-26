@@ -1,0 +1,4 @@
+interface:
+  display_name: "Loop Daily Runner"
+  short_description: "Run one safe daily project website growth-loop step."
+  default_prompt: "Run one safe project Loop Engine daily iteration: check PRs, select the next task, execute exactly one recommended factory step, update statuses, build a concise report, and stop. Do not perform production deploy or more than one major task."

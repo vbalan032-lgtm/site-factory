@@ -1,0 +1,4 @@
+interface:
+  display_name: "Short Definition Writer"
+  short_description: "Write answer-ready project definitions in 40-60, 100-150, and 300-500 words."
+  default_prompt: "Write project-safe definitions for the target term in 40-60, 100-150, and 300-500 word formats, with proof notes and placement recommendations."

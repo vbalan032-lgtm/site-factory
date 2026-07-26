@@ -1,0 +1,4 @@
+interface:
+  display_name: "Loop Failed Build Repair"
+  short_description: "Repair the smallest failing build or CI issue before new work."
+  default_prompt: "Repair the failed project build or CI state selected in NEXT_TASK. Diagnose the failing check, make the smallest safe fix, rerun the relevant checks, record blockers, and do not add new scope, merge, push, or deploy."

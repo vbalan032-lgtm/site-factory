@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://site-factory.local/schemas/project.schema.json",
+  "title": "Site Factory project configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "project_id",
+    "project_name",
+    "public_language",
+    "accepted_latin_terms",
+    "tech_profile",
+    "paths"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "project_id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "project_name": { "type": "string", "minLength": 1 },
+    "public_language": { "const": "ru-Cyrl" },
+    "accepted_latin_terms": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "tech_profile": { "const": "nextjs-16" },
+    "paths": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "master_context", "brand", "product", "claims", "personas",
+        "business_architecture", "sitemap", "tech_stack", "codex_environment",
+        "source_index", "page_queue", "next_task", "status", "loop_log",
+        "graph_profile", "project_knowledge"
+      ],
+      "patternProperties": {
+        "^[a-z_]+$": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}
+

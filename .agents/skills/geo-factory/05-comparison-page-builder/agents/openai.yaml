@@ -1,0 +1,4 @@
+interface:
+  display_name: "Comparison Page Builder"
+  short_description: "Create honest project comparison pages for GEO and AI search."
+  default_prompt: "Create a balanced project comparison page plan with direct answer, neutral definitions, decision criteria, comparison table, where-each-option-fits sections, project perspective, limitations, commercial links, proof notes, and handoffs."

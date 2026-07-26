@@ -1,0 +1,4 @@
+interface:
+  display_name: "project Page Assets"
+  short_description: "Prepares or explicitly skips page assets"
+  default_prompt: "Use $04-page-assets to reuse, prepare, and validate only the assets required by the approved project page."

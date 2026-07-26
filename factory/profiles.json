@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "default_profiles": ["core", "nextjs-ui"],
+  "profiles": {
+    "core": {
+      "description": "Семистадийная фабрика, Loop Engine, SEO, GEO, контракты и knowledge graph.",
+      "owned_paths": [
+        ".agents/skills/website-factory",
+        ".agents/skills/webpage-factory",
+        ".agents/skills/seo-factory",
+        ".agents/skills/geo-factory",
+        ".agents/skills/loop-engine",
+        ".agents/skills/shared"
+      ]
+    },
+    "nextjs-ui": {
+      "description": "UI/UX, shadcn, React/Next.js и визуальные вспомогательные skills.",
+      "owned_paths": [
+        ".agents/skills/canvas-design",
+        ".agents/skills/design-taste-frontend",
+        ".agents/skills/shadcn",
+        ".agents/skills/vercel-react-best-practices",
+        ".agents/skills/web-design-guidelines"
+      ]
+    }
+  }
+}

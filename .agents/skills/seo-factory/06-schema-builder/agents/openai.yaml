@@ -1,0 +1,4 @@
+interface:
+  display_name: "Schema Builder"
+  short_description: "Create and validate project schema.org JSON-LD without unsupported ratings, reviews, or prices"
+  default_prompt: "Use $06-schema-builder to create, implement, and validate schema.org JSON-LD for a project page, including Organization, WebSite, BreadcrumbList, FAQPage, Article, Service, Product when applicable, and SoftwareApplication when applicable."

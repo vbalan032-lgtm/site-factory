@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "project_id": "project-website",
+  "provider": "graphify-json",
+  "provider_settings_ref": null,
+  "corpus_roots": [
+    "PROJECT_MASTER_CONTEXT.md",
+    "docs",
+    "app",
+    "components",
+    ".agents/skills"
+  ],
+  "exclude_globs": [
+    "**/.env*",
+    "**/node_modules/**",
+    "graphify-out/**",
+    "docs/system/skill-archive/**",
+    "docs/system/skill-backups/**",
+    "docs/pages/**/migration-archive/**"
+  ],
+  "artifact_roots": ["docs/pages"],
+  "output_path": "graphify-out/graph.json",
+  "public_locale": "ru-RU",
+  "freshness_max_age_minutes": 1440,
+  "entity_aliases": {},
+  "ontology_extensions": [],
+  "stage_budgets": {
+    "01-page-contract": 1800,
+    "02-creative-blueprint": 1800,
+    "03-conversion-copy": 1600,
+    "04-page-assets": 1000,
+    "05-full-page-build": 1400,
+    "06-integrated-qa-refinement": 1800,
+    "07-release-growth": 900
+  }
+}

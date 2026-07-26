@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing v* tag approved for publication
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: windows-latest
+    environment: release
+    env:
+      APPROVED_TAG: ${{ inputs.tag }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+      - name: Match approved tag to factory version
+        shell: pwsh
+        run: |
+          $Version = (Get-Content factory\dependencies.lock.json | ConvertFrom-Json).factory_version
+          $ExpectedTag = "v$Version"
+          if ($env:APPROVED_TAG -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+$') {
+            throw "Approved tag must use vMAJOR.MINOR.PATCH format"
+          }
+          if ($env:APPROVED_TAG -ne $ExpectedTag) {
+            throw "Approved tag '$env:APPROVED_TAG' must equal $ExpectedTag"
+          }
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+          cache-dependency-path: templates/nextjs/package-lock.json
+      - name: Verify factory
+        run: |
+          python -m unittest discover -s tests/factory -p "test_*.py" -v
+          python -m unittest discover -s tests/bootstrap -p "test_*.py" -v
+      - name: Verify starter
+        working-directory: templates/nextjs
+        run: |
+          npm ci
+          npm run lint
+          npm run typecheck
+          npm run build
+      - name: Build release package
+        shell: pwsh
+        run: .\bootstrap.ps1 -Mode Pack -Output dist -Apply
+      - name: Verify release package
+        shell: pwsh
+        run: |
+          $Archive = Get-ChildItem dist\*.zip | Select-Object -First 1
+          $Checksum = Get-ChildItem dist\*.sha256 | Select-Object -First 1
+          $Manifest = Get-ChildItem dist\*.manifest.json | Select-Object -First 1
+          .\bootstrap.ps1 -Mode Verify -Archive $Archive.FullName -Checksum $Checksum.FullName -Manifest $Manifest.FullName
+      - name: Publish private repository release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create $env:APPROVED_TAG (Get-ChildItem dist\* | ForEach-Object FullName) --verify-tag --generate-notes --title "Site Factory $env:APPROVED_TAG"

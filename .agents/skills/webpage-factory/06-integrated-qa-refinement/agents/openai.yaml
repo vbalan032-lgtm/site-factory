@@ -1,0 +1,4 @@
+interface:
+  display_name: "project Integrated QA"
+  short_description: "Reviews and refines one complete page"
+  default_prompt: "Use $06-integrated-qa-refinement to critique, refine, and verify the complete project page before release preparation."

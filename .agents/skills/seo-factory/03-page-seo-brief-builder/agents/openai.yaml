@@ -1,0 +1,4 @@
+interface:
+  display_name: "Page SEO Brief Builder"
+  short_description: "Create project page SEO briefs with keywords, FAQ, schema, links, content, and proof"
+  default_prompt: "Use $03-page-seo-brief-builder to create a complete SEO brief for a project page, including primary and secondary keywords, search intent, title, description, H1, H2, FAQ, schema type, internal links, content requirements, and proof requirements."

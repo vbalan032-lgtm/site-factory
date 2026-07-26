@@ -1,0 +1,4 @@
+interface:
+  display_name: "Brand Compliance Checker"
+  short_description: "Check one project artifact for brand compliance."
+  default_prompt: "Check the target project artifact for brand compliance. Return pass/fail status, blockers, warnings, evidence, and owner skills for fixes."

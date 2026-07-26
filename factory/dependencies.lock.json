@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "factory_version": "1.0.0",
+  "runtime": {
+    "python": ">=3.12",
+    "powershell": ">=5.1",
+    "node": "22.x or 24.x",
+    "npm": ">=10"
+  },
+  "starter": {
+    "next": "16.2.12",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "graphify": "0.9.13"
+  },
+  "security_overrides": {
+    "minimatch@3.1.5": "10.2.5",
+    "minimatch@10.2.5>brace-expansion": "5.0.8",
+    "postcss": "8.5.23",
+    "sharp": "0.35.3"
+  },
+  "provenance": {
+    "node_packages": "templates/nextjs/package-lock.json",
+    "python_packages": "standard-library-only",
+    "skills": "skills-lock.json"
+  }
+}

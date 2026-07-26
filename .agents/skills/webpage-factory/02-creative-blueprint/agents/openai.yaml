@@ -1,0 +1,4 @@
+interface:
+  display_name: "project Creative Blueprint"
+  short_description: "Design the complete page direction"
+  default_prompt: "Use $02-creative-blueprint to research, design, and prepare the complete-page creative direction for owner approval."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "project Full-page Build"
+  short_description: "Builds and assembles one complete page"
+  default_prompt: "Use $05-full-page-build to implement and verify one coherent project page from the approved page artifacts."

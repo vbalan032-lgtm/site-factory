@@ -1,0 +1,4 @@
+interface:
+  display_name: "Internal Linking Builder"
+  short_description: "Build and implement project internal links with a report"
+  default_prompt: "Use $07-internal-linking-builder to build and update project internal linking from the homepage to money pages, blog to configured primary offer, GEO pages to commercial pages, configured topics, workflows, and artifacts topics, and demo, pilot, and integrations pages, then write docs/seo/INTERNAL_LINKING_REPORT.md."

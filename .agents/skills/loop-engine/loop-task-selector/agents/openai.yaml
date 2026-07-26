@@ -1,0 +1,4 @@
+interface:
+  display_name: "Loop Task Selector"
+  short_description: "Select one next safe project Loop Engine task."
+  default_prompt: "Select the next safest and highest-priority project Loop Engine task by reading state files, Git state, PR state, and CI state. Write docs/system/NEXT_TASK.md with task id, priority, target, recommended skill, reason, dependencies, blockers, approval needs, expected output, and next status. Do not execute the task."

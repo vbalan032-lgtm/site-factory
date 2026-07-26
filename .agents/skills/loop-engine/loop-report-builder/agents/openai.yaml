@@ -1,0 +1,4 @@
+interface:
+  display_name: "Loop Report Builder"
+  short_description: "Build concise owner-facing project Loop Engine reports."
+  default_prompt: "Build a concise project Loop Engine report from the latest status, task, PR, QA, command results, and skill result. Save it to docs/reports, update STATUS_SUMMARY, and return a short owner-facing summary without starting a new task."

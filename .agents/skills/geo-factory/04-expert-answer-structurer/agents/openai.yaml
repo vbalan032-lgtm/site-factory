@@ -1,0 +1,4 @@
+interface:
+  display_name: "Expert Answer Structurer"
+  short_description: "Structure project expert answers for GEO and AI search."
+  default_prompt: "Structure an expert project answer with what it is, who needs it, input data, how it works, client outputs, limitations, safe implementation, next step, proof notes, and handoffs."

@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "project_id": "example-site",
+  "project_name": "Новый проект",
+  "public_language": "ru-Cyrl",
+  "accepted_latin_terms": ["API", "B2B", "CMS", "GEO", "JSON-LD", "Next.js", "SEO", "SSR", "UI", "UX"],
+  "tech_profile": "nextjs-16",
+  "paths": {
+    "master_context": "PROJECT_MASTER_CONTEXT.md",
+    "brand": "docs/BRAND_STYLE.md",
+    "product": "docs/PRODUCT_MAP.md",
+    "claims": "docs/CLAIMS_AND_PROOFS.md",
+    "personas": "docs/PERSONAS.md",
+    "business_architecture": "docs/BUSINESS_ARCHITECTURE.md",
+    "sitemap": "docs/SITEMAP.md",
+    "tech_stack": "docs/TECH_STACK.md",
+    "codex_environment": "docs/CODEX_ENVIRONMENT.md",
+    "source_index": "docs/source-index",
+    "page_queue": "docs/site/PAGE_QUEUE.md",
+    "next_task": "docs/system/NEXT_TASK.md",
+    "status": "docs/system/STATUS.md",
+    "loop_log": "docs/system/LOOP_LOG.md",
+    "graph_profile": "docs/system/knowledge-graph/GRAPH_PROFILE.json",
+    "project_knowledge": "docs/system/knowledge-graph/PROJECT_KNOWLEDGE.json"
+  }
+}
+

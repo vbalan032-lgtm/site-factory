@@ -1,0 +1,4 @@
+interface:
+  display_name: "Loop PR Watchdog"
+  short_description: "Monitor open project PRs, CI, review state, QA, staging, and approvals."
+  default_prompt: "Monitor open project website PRs using available PR integration, CI state, PR_QUEUE, QA reports, STATUS, LOOP_LOG, release rules, approval rules, and local Git state. Update PR_QUEUE, create PR_WATCHDOG_REPORT, create NEXT_TASK for repair when needed, and do not fix, merge, close, or deploy."

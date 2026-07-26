@@ -1,0 +1,4 @@
+interface:
+  display_name: "Release Gate Checker"
+  short_description: "Decide whether project work can move to the next release step."
+  default_prompt: "Check whether the completed project work can move to the next release step. Return pass/fail status, blockers, warnings, evidence reviewed, approvals required, and required next actions."

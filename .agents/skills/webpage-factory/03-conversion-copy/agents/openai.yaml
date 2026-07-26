@@ -1,0 +1,4 @@
+interface:
+  display_name: "project Conversion Copy"
+  short_description: "Write final Russian page copy"
+  default_prompt: "Use $03-conversion-copy to write and validate final Russian copy and search requirements for the approved project page."

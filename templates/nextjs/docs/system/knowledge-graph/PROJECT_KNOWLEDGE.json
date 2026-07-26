@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "project_id": "example-site",
+  "nodes": [
+    {"type": "Project", "key": "business", "label": "Проект", "summary": "Контекст требует заполнения владельцем", "source_path": "PROJECT_MASTER_CONTEXT.md", "source_location": "# Мастер-контекст проекта", "routes": ["/"], "stages": ["01-page-contract"], "tags": ["context"]},
+    {"type": "Page", "key": "home", "label": "Главная", "summary": "Главная страница стоит в очереди", "source_path": "docs/SITEMAP.md", "source_location": "# Карта сайта", "routes": ["/"], "stages": ["01-page-contract"], "tags": ["page"]},
+    {"type": "Claim", "key": "proof-policy", "label": "Доказательства", "summary": "Неподтверждённые заявления имеют статус needs_proof", "source_path": "docs/CLAIMS_AND_PROOFS.md", "source_location": "# Заявления и доказательства", "stages": ["01-page-contract", "03-conversion-copy"], "tags": ["proof"]}
+  ],
+  "relationships": [
+    {"source": "Project:business", "target": "Page:home", "relation": "HAS_PAGE"},
+    {"source": "Page:home", "target": "Claim:proof-policy", "relation": "REQUIRES_PROOF_POLICY"}
+  ]
+}
+

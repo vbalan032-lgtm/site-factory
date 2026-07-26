@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "required": {
+    "project_skills": ".agents/skills",
+    "external_skill_families": ["superpowers"],
+    "runtime": ["python>=3.12", "powershell>=5.1", "git"]
+  },
+  "full_cycle_integrations": {
+    "context7": "current library documentation fallback",
+    "playwright": "stage-6 and authorized staging browser evidence",
+    "github": "remote repository, PR, Actions and release state",
+    "graphify": "optional graph provider with filesystem fallback"
+  },
+  "credential_policy": "OS environment or user secret store only; never repository files"
+}

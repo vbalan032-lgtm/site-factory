@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "project_id": "example-site",
+  "provider": "graphify-json",
+  "provider_settings_ref": null,
+  "extraction_mode": "code-only",
+  "knowledge_seed_paths": ["docs/system/knowledge-graph/PROJECT_KNOWLEDGE.json"],
+  "corpus_roots": ["PROJECT_MASTER_CONTEXT.md", "docs", "app", "components", "lib"],
+  "exclude_globs": ["**/.env*", "graphify-out/**", "docs/**/migration-archive/**", "docs/system/skill-archive/**", "docs/system/skill-backups/**"],
+  "artifact_roots": ["docs/pages"],
+  "output_path": "graphify-out/graph.json",
+  "public_locale": "ru-RU",
+  "freshness_max_age_minutes": 1440,
+  "entity_aliases": {},
+  "ontology_extensions": [],
+  "stage_budgets": {"01-page-contract": 8000, "02-creative-blueprint": 7000, "03-conversion-copy": 7000, "06-integrated-qa-refinement": 5000}
+}
+

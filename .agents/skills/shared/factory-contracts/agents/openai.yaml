@@ -1,0 +1,4 @@
+interface:
+  display_name: "project Factory Contracts"
+  short_description: "Validate v3 page artifacts and handoffs"
+  default_prompt: "Validate the selected project v3 page artifact against its schema, stage, status, source fingerprints, approval scope, Russian-language requirement, and next-stage handoff. Do not edit state or page content."

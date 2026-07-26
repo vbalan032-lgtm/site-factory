@@ -1,0 +1,4 @@
+interface:
+  display_name: "Topic Explainer Page Builder"
+  short_description: "Create answer-ready What is topic pages for project GEO."
+  default_prompt: "Create a project topic explainer page plan for the target topic using the 13-block answer-ready structure, with definitions, simple explanation, workflow, elements, differences, inputs, outputs, limitations, audience fit, project AI-agent application, FAQ, internal links, CTA, proof notes, and handoffs."
