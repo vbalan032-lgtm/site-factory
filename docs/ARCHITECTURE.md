@@ -10,6 +10,10 @@
 
 `.site-factory/lock.json` создаётся bootstrap-скриптом. Он фиксирует версию фабрики, выбранные профили, factory-owned roots и SHA-256 каждого установленного файла.
 
+Для нового проекта используется `New`, для существующего проекта — `Attach` или `Adopt`, а для уже установленного вручную factory snapshot — `Register`. `Register` проверяет конфигурацию и записывает lock, не копируя starter и не перезаписывая приложение.
+
+Поддерживаются технические профили `nextjs-16` и `static-html`. Static profile меняет маршрутизацию skills и quality checks; он не превращает generic factory в проектный starter.
+
 ## Жизненный цикл
 
 1. Page Contract.
@@ -31,6 +35,8 @@
 ## Обновление
 
 `Update` сначала сверяет каждый установленный хеш и проверяет новые release-файлы на коллизии. Изменённый или удалённый factory-owned файл считается drift и блокирует обновление. Перед изменением создаётся ZIP-backup прежнего snapshot; при ошибке копирования старые файлы и lock восстанавливаются. При чистом snapshot обновляются только выбранные профили; project config и project-owned файлы не затрагиваются.
+
+Context loading работает graph-first с stage-specific budget и allowlist. При недоступности Graphify применяется filesystem fallback; fallback не расширяет права на claims, approvals, Git, staging или production. Подробные правила находятся в `docs/CONTEXT_POLICY.md`, quality gates — в `docs/QUALITY_GATES.md`.
 
 ## Упаковка и релиз
 

@@ -35,10 +35,10 @@ EXPECTED_DESIGN_ROUTING = {
 }
 
 EXPECTED_INSTALLED_TREE_HASHES = {
-    "shadcn": "309749fba24b8f335ef793e9dfa2b3a6ef0c8d0cee34e572772a576e854c78d8",
-    "web-design-guidelines": "cddd4fa478ba5108e102ebfe08921503ead59101ede66d69061d9c8ea3a282bc",
-    "canvas-design": "04ffdf975a738581e4b1bb529e3d02cd2406e1925b62558a47b0bd4725114b25",
-    "vercel-react-best-practices": "100a3e1d27c5d0a21eb5aedb09c389dc482fd3b6d442a76c3d4b9aa3faf9dfce",
+    "shadcn": "8009303546706b6f943021165366149f01d43845a2c5ea71e257ca2bf8b9a936",
+    "web-design-guidelines": "0dc822a092499c06d11ffd10bf28ae625e4e5112c8fcdf00ffa3c5d2785dfe0f",
+    "canvas-design": "b6b1170d1ce8b7fb362bc340181ad89398cfbcd3d7c5c19c20402f61beafb25e",
+    "vercel-react-best-practices": "a3d27584d3e8456fceff05042c837ebc7dfb6f77524113fdb27e1244ad0a496a",
 }
 
 EXPECTED_LOCK_ENTRIES = {

@@ -1,0 +1,18 @@
+# Documentation-only integration profile. Keep inactive until the user
+# explicitly authorizes a connector and supplies credentials via an OS secret
+# store or environment variable.
+
+[mcp_servers.context7]
+command = "npx"
+args = ["-y", "@upstash/context7-mcp"]
+startup_timeout_sec = 20
+tool_timeout_sec = 60
+
+[mcp_servers.playwright]
+command = "npx"
+args = ["-y", "@playwright/mcp@latest"]
+startup_timeout_sec = 20
+tool_timeout_sec = 90
+
+# GitHub, Google Drive and node_repl are intentionally documented but not
+# activated here. Never place tokens, OAuth data or private paths in this file.

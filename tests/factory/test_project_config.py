@@ -85,6 +85,15 @@ class ProjectConfigTests(unittest.TestCase):
         with self.assertRaisesRegex(ProjectConfigError, "ru-Cyrl"):
             load_project_config(self.root)
 
+    def test_accepts_static_html_tech_profile(self):
+        self.write_config(tech_profile="static-html")
+
+        from factory.project_config import load_project_config
+
+        config = load_project_config(self.root)
+
+        self.assertEqual(config.tech_profile, "static-html")
+
     @staticmethod
     def _default_paths():
         return {

@@ -22,6 +22,14 @@
         ".agents/skills/vercel-react-best-practices",
         ".agents/skills/web-design-guidelines"
       ]
+    },
+    "static-site": {
+      "description": "Static HTML/CSS/Vanilla JS delivery with generic visual and accessibility review skills.",
+      "owned_paths": [
+        ".agents/skills/canvas-design",
+        ".agents/skills/design-taste-frontend",
+        ".agents/skills/web-design-guidelines"
+      ]
     }
   }
 }

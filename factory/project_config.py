@@ -26,6 +26,7 @@ REQUIRED_PATHS = {
     "project_knowledge",
 }
 PROJECT_ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+SUPPORTED_TECH_PROFILES = ("nextjs-16", "static-html")
 
 
 class ProjectConfigError(ValueError):
@@ -78,8 +79,11 @@ def load_project_config(repo_root: Path) -> ProjectConfig:
         raise ProjectConfigError("project_name must be a non-empty string")
     if data.get("public_language") != "ru-Cyrl":
         raise ProjectConfigError("public_language must be ru-Cyrl in schema 1.0")
-    if data.get("tech_profile") != "nextjs-16":
-        raise ProjectConfigError("tech_profile must be nextjs-16 in schema 1.0")
+    tech_profile = data.get("tech_profile")
+    if tech_profile not in SUPPORTED_TECH_PROFILES:
+        raise ProjectConfigError(
+            "tech_profile must be one of: " + ", ".join(SUPPORTED_TECH_PROFILES)
+        )
     terms = data.get("accepted_latin_terms", [])
     if not isinstance(terms, list) or not all(
         isinstance(term, str) and term.strip() for term in terms
@@ -99,7 +103,6 @@ def load_project_config(repo_root: Path) -> ProjectConfig:
         project_name=project_name.strip(),
         public_language="ru-Cyrl",
         accepted_latin_terms=tuple(terms),
-        tech_profile="nextjs-16",
+        tech_profile=tech_profile,
         paths=paths,
     )
-

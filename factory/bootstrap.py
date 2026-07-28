@@ -32,6 +32,7 @@ PACKAGE_ROOT_DIRECTORIES = (
 PACKAGE_ROOT_FILES = (
     ".gitignore",
     "AGENTS.md",
+    "bootstrap.sh",
     "bootstrap.ps1",
     "LICENSE.md",
     "README.md",
@@ -423,6 +424,38 @@ def update_project(source_root: Path, target: Path, *, apply: bool) -> Operation
     return OperationResult(actions, changed=True)
 
 
+def register_project(
+    source_root: Path,
+    target: Path,
+    *,
+    profiles: tuple[str, ...] | list[str] | None = None,
+    apply: bool,
+) -> OperationResult:
+    """Register an existing project without copying or overwriting files."""
+    source_root = source_root.resolve()
+    target = target.resolve()
+    if not target.is_dir():
+        raise BootstrapError("Register target must be an existing directory")
+    if not (target / CONFIG_PATH).is_file():
+        raise BootstrapError("project config is required before registration")
+    config = load_project_config(target)
+    selected_profiles, owned_paths = _profile_paths(source_root, profiles)
+    installed = build_manifest(target, owned_paths)
+    if not installed:
+        raise BootstrapError("Register target has no factory-owned files for selected profiles")
+    actions = ("validate existing project config", "write factory lock for installed snapshot")
+    if not apply:
+        return OperationResult(actions)
+    _write_lock(
+        source_root,
+        target,
+        selected_profiles,
+        owned_paths,
+        source=f"registered project snapshot: {config.project_id}",
+    )
+    return OperationResult(actions, changed=True)
+
+
 def doctor(target: Path) -> DoctorReport:
     target = target.resolve()
     issues: list[str] = []
@@ -560,6 +593,8 @@ def _package_files(source_root: Path, output_root: Path) -> list[Path]:
     candidates = [source_root / name for name in PACKAGE_ROOT_FILES]
     candidates.extend(source_root / name for name in PACKAGE_ROOT_DIRECTORIES)
     for candidate in candidates:
+        if not candidate.exists():
+            continue
         _reject_unsafe_package_path(candidate, source_root)
         if candidate.is_file():
             files.append(candidate)
@@ -705,8 +740,8 @@ def verify_package(archive: Path, checksum: Path, manifest_path: Path) -> Doctor
 
 
 def _parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Site Factory Windows bootstrap")
-    parser.add_argument("mode", choices=("new", "attach", "adopt", "doctor", "update", "configure-codex", "pack", "verify"))
+    parser = argparse.ArgumentParser(description="Portable Site Factory bootstrap")
+    parser.add_argument("mode", choices=("new", "attach", "adopt", "register", "doctor", "update", "configure-codex", "pack", "verify"))
     parser.add_argument("--source", type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument("--target", type=Path)
     parser.add_argument("--project-id")
@@ -738,6 +773,16 @@ def main(argv: list[str] | None = None) -> int:
                 args.target,
                 args.project_id,
                 args.project_name,
+                profiles=profiles,
+                apply=args.apply,
+            )
+        elif args.mode == "register":
+            if not args.target:
+                raise BootstrapError("target is required")
+            profiles = tuple(item.strip() for item in args.profiles.split(",")) if args.profiles else None
+            result = register_project(
+                args.source,
+                args.target,
                 profiles=profiles,
                 apply=args.apply,
             )

@@ -171,6 +171,36 @@ class BootstrapTests(unittest.TestCase):
         lock = json.loads((target / ".site-factory/lock.json").read_text(encoding="utf-8"))
         self.assertEqual(lock["profiles"], ["core"])
 
+    def test_register_records_existing_snapshot_without_overwriting_project_files(self):
+        from factory.bootstrap import register_project
+
+        target = self.sandbox / "registered"
+        target.mkdir()
+        config = ROOT / "templates/nextjs/.site-factory/project.json"
+        (target / ".site-factory").mkdir()
+        shutil.copy2(config, target / ".site-factory/project.json")
+        (target / ".agents/skills").mkdir(parents=True)
+        shutil.copytree(
+            ROOT / ".agents/skills",
+            target / ".agents/skills",
+            ignore=shutil.ignore_patterns("__pycache__"),
+            dirs_exist_ok=True,
+        )
+        (target / "app").mkdir()
+        sentinel = target / "app/page.tsx"
+        sentinel.write_text("existing application", encoding="utf-8")
+
+        preview = register_project(ROOT, target, apply=False)
+        self.assertFalse((target / ".site-factory/lock.json").exists())
+        self.assertIn("write factory lock", preview.actions)
+
+        register_project(ROOT, target, apply=True)
+
+        self.assertEqual(sentinel.read_text(encoding="utf-8"), "existing application")
+        lock = json.loads((target / ".site-factory/lock.json").read_text(encoding="utf-8"))
+        self.assertEqual(lock["source"], "registered project snapshot: example-site")
+        self.assertTrue(lock["installed_files"])
+
     def test_update_replaces_clean_snapshot_and_rejects_local_drift(self):
         from factory.bootstrap import BootstrapError, new_project, update_project
 
@@ -294,6 +324,8 @@ class BootstrapTests(unittest.TestCase):
         self.assertEqual(backup.read_text(encoding="utf-8"), "local example")
 
     def test_powershell_wrapper_maps_configure_codex_mode(self):
+        if shutil.which("powershell") is None:
+            self.skipTest("PowerShell is not installed in this environment")
         target = self.sandbox / "wrapper"
         result = subprocess.run(
             [

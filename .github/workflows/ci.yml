@@ -10,7 +10,11 @@ permissions:
 
 jobs:
   factory:
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -23,13 +27,9 @@ jobs:
       - name: Validate skills
         run: python .agents/skills/shared/factory-contracts/scripts/validate_skills.py .agents/skills
       - name: Package and verify
-        shell: pwsh
         run: |
-          .\bootstrap.ps1 -Mode Pack -Output dist -Apply
-          $Archive = Get-ChildItem dist\*.zip | Select-Object -First 1
-          $Checksum = Get-ChildItem dist\*.sha256 | Select-Object -First 1
-          $Manifest = Get-ChildItem dist\*.manifest.json | Select-Object -First 1
-          .\bootstrap.ps1 -Mode Verify -Archive $Archive.FullName -Checksum $Checksum.FullName -Manifest $Manifest.FullName
+          python -m factory.bootstrap pack --output dist --apply
+          python -c "from pathlib import Path; import subprocess; d=Path('dist'); a=next(d.glob('*.zip')); c=next(d.glob('*.sha256')); m=next(d.glob('*.manifest.json')); subprocess.run(['python','-m','factory.bootstrap','verify','--archive',str(a),'--checksum',str(c),'--manifest',str(m)],check=True)"
 
   starter:
     runs-on: windows-latest
