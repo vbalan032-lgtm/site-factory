@@ -36,6 +36,7 @@ class PackTests(unittest.TestCase):
         with zipfile.ZipFile(first.archive) as archive:
             names = set(archive.namelist())
         self.assertIn("site-factory/bootstrap.ps1", names)
+        self.assertIn("site-factory/bootstrap.sh", names)
         self.assertNotIn("site-factory/.git/config", names)
         self.assertNotIn("site-factory/templates/nextjs/next-env.d.ts", names)
         self.assertNotIn("site-factory/templates/nextjs/tsconfig.tsbuildinfo", names)

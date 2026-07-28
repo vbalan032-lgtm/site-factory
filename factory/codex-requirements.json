@@ -2,8 +2,10 @@
   "schema_version": "1.0",
   "required": {
     "project_skills": ".agents/skills",
+    "supported_tech_profiles": ["nextjs-16", "static-html"],
     "external_skill_families": ["superpowers"],
-    "runtime": ["python>=3.12", "powershell>=5.1", "git"]
+    "runtime": ["python>=3.12", "bash", "node>=22", "npm", "git"],
+    "compatibility_runtime": ["powershell>=5.1"]
   },
   "full_cycle_integrations": {
     "context7": "current library documentation fallback",

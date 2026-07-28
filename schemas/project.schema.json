@@ -23,7 +23,7 @@
       "items": { "type": "string", "minLength": 1 },
       "uniqueItems": true
     },
-    "tech_profile": { "const": "nextjs-16" },
+    "tech_profile": { "enum": ["nextjs-16", "static-html"] },
     "paths": {
       "type": "object",
       "additionalProperties": false,
@@ -39,4 +39,3 @@
     }
   }
 }
-

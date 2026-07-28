@@ -6,16 +6,21 @@
 
 ## Что входит
 
-- 56 локальных Codex skills в двух профилях: `core` и `nextjs-ui`;
-- безопасные режимы `New`, `Attach`, `Adopt`, `Doctor`, `Update`, `ConfigureCodex`, `Pack`, `Verify`;
+- 56 локальных Codex skills в профилях `core` и `nextjs-ui`, с дополнительным `static-site` маршрутом;
+- безопасные режимы `New`, `Attach`, `Adopt`, `Register`, `Doctor`, `Update`, `ConfigureCodex`, `Pack`, `Verify`;
 - хешированный `.site-factory/lock.json` и блокировка обновления при локальном drift;
 - нейтральный starter: Next.js 16.2.12, React 19.2.4, TypeScript, Tailwind CSS 4, npm lockfile и Dockerfile;
-- 164 regression-теста фабрики и clean-room тесты переноса;
-- Windows CI и воспроизводимая ZIP-упаковка с manifest и SHA-256.
+- 183 regression-теста фабрики и clean-room тесты переноса;
+- Windows/Linux-compatible bootstrap и воспроизводимая ZIP-упаковка с manifest и SHA-256.
 
 ## Быстрый старт на Windows 11
 
 Требования: Git, Python 3.12+, PowerShell 5.1+, Node.js 22 или 24, npm и установленный Codex.
+
+На Linux/macOS используется `./bootstrap.sh`; PowerShell остаётся совместимым Windows-интерфейсом.
+
+`static-html` можно указать в `.site-factory/project.json` для существующего HTML/CSS/Vanilla JS проекта. Отдельный static starter
+не создаётся автоматически: factory profile меняет только маршрутизацию skills и проверки.
 
 Сначала выполните dry-run:
 

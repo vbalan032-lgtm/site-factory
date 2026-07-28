@@ -4,6 +4,7 @@
   "runtime": {
     "python": ">=3.12",
     "powershell": ">=5.1",
+    "linux": "bash + Python 3.12 standard library",
     "node": "22.x or 24.x",
     "npm": ">=10"
   },
